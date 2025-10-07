@@ -1,3 +1,136 @@
+# =============================================================================
+# Platform-Level Variables for AI Services NonProd
+# =============================================================================
+
+variable "environment" {
+  description = "Environment name (e.g., dev, staging, prod)"
+  type        = string
+  default     = "dev"
+}
+
+variable "application_name" {
+  description = "Application name used for resource naming"
+  type        = string
+  default     = "aiapps"
+}
+
+variable "ainonprod_sub_id" {
+  description = "Subscription ID for AI-Services non-prod environment"
+  type        = string
+  default     = ""
+}
+
+variable "resource_group_name_dns" {
+  description = "Resource group name for DNS resources"
+  type        = string
+  default     = ""
+}
+
+variable "subnet_id" {
+  description = "Subnet ID for general resources"
+  type        = string
+  default     = ""
+}
+
+variable "subnet_id_aifoundry" {
+  description = "Subnet ID specifically for AI Foundry resources"
+  type        = string
+  default     = ""
+}
+
+variable "subscription_id_resources" {
+  description = "Subscription ID for deploying resources"
+  type        = string
+  default     = ""
+}
+
+variable "subscription_id_infra" {
+  description = "Subscription ID for infrastructure resources"
+  type        = string
+  default     = ""
+}
+
+variable "location" {
+  description = "Azure region for resource deployment"
+  type        = string
+  default     = "uaenorth"
+}
+
+variable "existing_vnet_name" {
+  description = "Name of existing virtual network"
+  type        = string
+  default     = ""
+}
+
+variable "existing_vnet_rg" {
+  description = "Resource group name of existing virtual network"
+  type        = string
+  default     = ""
+}
+
+# =============================================================================
+# Module Enable/Disable Count Variables
+# =============================================================================
+
+variable "enable_key_vaults" {
+  description = "Enable Key Vault module deployment (1 = deploy, 0 = skip)"
+  type        = number
+  default     = 1
+}
+
+variable "enable_function_apps" {
+  description = "Enable Function Apps module deployment (1 = deploy, 0 = skip)"
+  type        = number
+  default     = 1
+}
+
+variable "enable_container_registries" {
+  description = "Enable Container Registry module deployment (1 = deploy, 0 = skip)"
+  type        = number
+  default     = 1
+}
+
+variable "enable_container_app_environments" {
+  description = "Enable Container App Environments module deployment (1 = deploy, 0 = skip)"
+  type        = number
+  default     = 1
+}
+
+variable "enable_container_apps" {
+  description = "Enable Container Apps module deployment (1 = deploy, 0 = skip)"
+  type        = number
+  default     = 1
+}
+
+variable "enable_ai_search_services" {
+  description = "Enable AI Search Services module deployment (1 = deploy, 0 = skip)"
+  type        = number
+  default     = 1
+}
+
+variable "enable_cosmos_db" {
+  description = "Enable Cosmos DB module deployment (1 = deploy, 0 = skip)"
+  type        = number
+  default     = 1
+}
+
+variable "enable_logic_apps" {
+  description = "Enable Logic Apps module deployment (1 = deploy, 0 = skip)"
+  type        = number
+  default     = 1
+}
+
+# =============================================================================
+# Legacy Variables (kept for backward compatibility)
+# =============================================================================
+
+# Azure Subscription Configuration
+variable "subscription_id" {
+  description = "Azure subscription ID where resources will be deployed"
+  type        = string
+  default     = "bb14fef7-35fb-4743-846a-85f6051acb7f"
+}
+
 variable "key_vaults" {
   description = "Map of Key Vault configurations"
   type = map(object({

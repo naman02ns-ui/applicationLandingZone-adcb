@@ -14,11 +14,14 @@ terraform {
 }
 
 provider "azurerm" {
-  subscription_id = "bb14fef7-35fb-4743-846a-85f6051acb7f"  # Your current subscription ID
+  subscription_id = var.subscription_id_resources  # Use the new platform variable
   features {
     key_vault {
       purge_soft_delete_on_destroy = false
       recover_soft_deleted_key_vaults = true
+    }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
     }
   }
 }

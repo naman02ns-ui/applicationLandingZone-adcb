@@ -1,7 +1,7 @@
 module "key_vaults" {
   source = "../kv"
 
-  for_each = var.key_vaults
+  for_each = var.enable_key_vaults > 0 ? var.key_vaults : {}
 
   resource_location              = each.value.resource_location
   resource_group_name           = each.value.resource_group_name
@@ -28,7 +28,7 @@ module "key_vaults" {
 module "function_apps" {
   source = "../app-service/app-function"
 
-  for_each = var.function_apps
+  for_each = var.enable_function_apps > 0 ? var.function_apps : {}
 
   resource_location                          = each.value.resource_location
   resource_group_name                       = each.value.resource_group_name
@@ -69,7 +69,7 @@ module "function_apps" {
 module "container_registries" {
   source = "../container-registry"
 
-  for_each = var.container_registries
+  for_each = var.enable_container_registries > 0 ? var.container_registries : {}
 
   resource_location               = each.value.resource_location
   resource_group_name            = each.value.resource_group_name
@@ -101,7 +101,7 @@ module "container_registries" {
 module "container_app_environments" {
   source = "../container-services/container-app-environment"
 
-  for_each = var.container_app_environments
+  for_each = var.enable_container_app_environments > 0 ? var.container_app_environments : {}
 
   management_sub_id           = each.value.management_sub_id
   resource_location          = each.value.resource_location
@@ -117,7 +117,7 @@ module "container_app_environments" {
 module "container_apps" {
   source = "../container-services/container-app"
 
-  for_each = var.container_apps
+  for_each = var.enable_container_apps > 0 ? var.container_apps : {}
 
   resource_location             = each.value.resource_location
   resource_group_name          = each.value.resource_group_name
@@ -141,7 +141,7 @@ module "container_apps" {
 module "ai_search_services" {
   source = "../AI-Search"
 
-  for_each = var.ai_search_services
+  for_each = var.enable_ai_search_services > 0 ? var.ai_search_services : {}
 
   resource_group_name    = each.value.resource_group_name
   location              = each.value.location
@@ -186,7 +186,7 @@ module "ai_search_services" {
 # Cosmos DB Module
 # ========================================
 module "cosmos_db" {
-  for_each = var.cosmos_db_services
+  for_each = var.enable_cosmos_db > 0 ? var.cosmos_db_services : {}
 
   source = "../cosmosDB"
 
@@ -232,7 +232,7 @@ module "cosmos_db" {
 # Logic Apps Module
 # ========================================
 module "logic_apps" {
-  for_each = var.logic_apps_services
+  for_each = var.enable_logic_apps > 0 ? var.logic_apps_services : {}
 
   source = "../app-service/logic-app"
 
@@ -281,7 +281,7 @@ module "logic_apps" {
 resource "azurerm_role_assignment" "function_app_kv_secrets_user" {
   for_each = {
     for combo in flatten([
-      for kv_key, kv_config in var.key_vaults : [
+      for kv_key, kv_config in (var.enable_key_vaults > 0 && var.enable_function_apps > 0) ? var.key_vaults : {} : [
         for fa_key, fa_config in var.function_apps : {
           kv_key = kv_key
           fa_key = fa_key
@@ -304,7 +304,7 @@ resource "azurerm_role_assignment" "function_app_kv_secrets_user" {
 resource "azurerm_role_assignment" "function_app_acr_pull" {
   for_each = {
     for combo in flatten([
-      for acr_key, acr_config in var.container_registries : [
+      for acr_key, acr_config in (var.enable_container_registries > 0 && var.enable_function_apps > 0) ? var.container_registries : {} : [
         for fa_key, fa_config in var.function_apps : {
           acr_key = acr_key
           fa_key = fa_key
