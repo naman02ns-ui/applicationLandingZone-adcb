@@ -692,3 +692,82 @@ variable "logic_apps_services" {
     error_message = "Valid values for Logic App Standard SKU are: WS1, WS2, and WS3."
   }
 }
+
+# =============================================================================
+# Variables for Existing Azure Resources (Customer Provided)
+# =============================================================================
+
+variable "enable_existing_key_vaults" {
+  description = "Enable using existing Key Vaults (1 = enabled, 0 = disabled)"
+  type        = number
+  default     = 0
+}
+
+variable "existing_key_vaults" {
+  description = "Map of existing Key Vault configurations"
+  type = map(object({
+    name                = string
+    resource_group_name = string
+  }))
+  default = {}
+}
+
+variable "enable_existing_storage_accounts" {
+  description = "Enable using existing Storage Accounts (1 = enabled, 0 = disabled)"
+  type        = number
+  default     = 0
+}
+
+variable "existing_storage_accounts" {
+  description = "Map of existing Storage Account configurations"
+  type = map(object({
+    name                = string
+    resource_group_name = string
+  }))
+  default = {}
+}
+
+variable "enable_existing_ai_search_services" {
+  description = "Enable using existing AI Search Services (1 = enabled, 0 = disabled)"
+  type        = number
+  default     = 0
+}
+
+variable "existing_ai_search_services" {
+  description = "Map of existing AI Search Service configurations"
+  type = map(object({
+    name                = string
+    resource_group_name = string
+  }))
+  default = {}
+}
+
+variable "enable_existing_log_analytics_workspaces" {
+  description = "Enable using existing Log Analytics Workspaces (1 = enabled, 0 = disabled)"
+  type        = number
+  default     = 0
+}
+
+variable "existing_log_analytics_workspaces" {
+  description = "Map of existing Log Analytics Workspace configurations"
+  type = map(object({
+    name                = string
+    resource_group_name = string
+  }))
+  default = {}
+}
+
+variable "enable_existing_cosmos_db" {
+  description = "Enable using existing Cosmos DB Accounts (1 = enabled, 0 = disabled)"
+  type        = number
+  default     = 0
+}
+
+variable "existing_cosmos_db_accounts" {
+  description = "Map of existing Cosmos DB Account configurations"
+  type = map(object({
+    name                = string
+    resource_group_name = string
+  }))
+  default = {}
+}

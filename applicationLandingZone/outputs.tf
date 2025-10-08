@@ -1,16 +1,70 @@
 # Outputs for Application Landing Zone
 
-# Key Vault Outputs
-output "key_vaults" {
-  description = "Key Vault configurations and details"
-  value = {
-    for k, v in module.key_vaults : k => {
+# =============================================================================
+# Existing Resources Outputs (Customer Provided)
+# =============================================================================
+
+# Existing Key Vault Outputs
+output "existing_key_vaults" {
+  description = "Existing Key Vault details"
+  value = var.enable_existing_key_vaults > 0 ? {
+    for k, v in data.azurerm_key_vault.existing : k => {
       id   = v.id
       name = v.name
       uri  = v.vault_uri
     }
-  }
+  } : {}
 }
+
+# Existing Storage Account Outputs
+output "existing_storage_accounts" {
+  description = "Existing Storage Account details"
+  value = var.enable_existing_storage_accounts > 0 ? {
+    for k, v in data.azurerm_storage_account.existing : k => {
+      id   = v.id
+      name = v.name
+    }
+  } : {}
+}
+
+# Existing AI Search Service Outputs
+output "existing_ai_search_services" {
+  description = "Existing AI Search Service details"
+  value = var.enable_existing_ai_search_services > 0 ? {
+    for k, v in data.azurerm_search_service.existing : k => {
+      id   = v.id
+      name = v.name
+    }
+  } : {}
+}
+
+# Existing Log Analytics Workspace Outputs
+output "existing_log_analytics_workspaces" {
+  description = "Existing Log Analytics Workspace details"
+  value = var.enable_existing_log_analytics_workspaces > 0 ? {
+    for k, v in data.azurerm_log_analytics_workspace.existing : k => {
+      id   = v.id
+      name = v.name
+      workspace_id = v.workspace_id
+    }
+  } : {}
+}
+
+# Existing Cosmos DB Account Outputs
+output "existing_cosmos_db_accounts" {
+  description = "Existing Cosmos DB Account details"
+  value = var.enable_existing_cosmos_db > 0 ? {
+    for k, v in data.azurerm_cosmosdb_account.existing : k => {
+      id   = v.id
+      name = v.name
+      endpoint = v.endpoint
+    }
+  } : {}
+}
+
+# =============================================================================
+# New Resources Outputs (Deployed by Terraform)
+# =============================================================================
 
 # Function App Outputs
 output "function_apps" {
@@ -51,44 +105,6 @@ output "container_apps" {
       id = v.id
     }
   }
-}
-
-# AI Search Service Outputs
-output "ai_search_services" {
-  description = "AI Search service configurations and details"
-  value = {
-    for k, v in module.ai_search_services : k => {
-      id                    = v.id
-      name                  = v.name
-      search_service_url    = v.search_service_url
-      query_keys           = v.query_keys
-      primary_key          = v.primary_key
-      secondary_key        = v.secondary_key
-      private_endpoint_id  = v.private_endpoint_id
-      private_endpoint_ip  = v.private_endpoint_ip_address
-    }
-  }
-  sensitive = true
-}
-
-# Cosmos DB Service Outputs
-output "cosmos_db_services" {
-  description = "Cosmos DB service configurations and details"
-  value = {
-    for k, v in module.cosmos_db : k => {
-      id                    = v.cosmosdb_account_id
-      name                  = v.cosmosdb_account_name
-      endpoint              = v.cosmosdb_account_endpoint
-      primary_key           = v.cosmosdb_account_primary_key
-      secondary_key         = v.cosmosdb_account_secondary_key
-      # connection_strings    = v.cosmosdb_account_connection_strings
-      databases             = v.cosmosdb_databases
-      containers            = v.cosmosdb_containers
-      private_endpoint_id   = v.private_endpoint_id
-      private_endpoint_ip   = v.private_endpoint_ip_address
-    }
-  }
-  sensitive = true
 }
 
 # Logic Apps Service Outputs
