@@ -30,6 +30,5 @@ module "container_registries" {
   encryption_enabled            = each.value.encryption_enabled
   privatelink_subnet            = each.value.privatelink_subnet
   private_dns_zone_id          = each.value.private_dns_zone_id
-  role_assignments             = each.value.role_assignments
   tags                          = each.value.tags
 }

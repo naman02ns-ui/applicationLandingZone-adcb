@@ -36,10 +36,6 @@ module "function_apps" {
   sku_name                                  = each.value.sku_name
   create_fileshare                          = each.value.create_fileshare
   file_shares                               = each.value.file_shares
-  site_config                               = each.value.site_config
-  connection_strings                        = each.value.connection_strings
-  backup                                    = each.value.backup
-  artifact_url                              = each.value.artifact_url
   tags                                      = each.value.tags
 }
 

@@ -3,7 +3,7 @@
 # =============================================================================
 
 ## AI services NonProd ##
-environment                   = "dev"
+environment                 = "dev"
 application_name             = "aiapps"
 ainonprod_sub_id            = "bb14fef7-35fb-4743-846a-85f6051acb7f"
 resource_group_name_dns     = "rg-dns-nonprod-uaenorth"
@@ -147,7 +147,6 @@ function_apps = {
     environment           = "dev"
     resource_location     = "uaenorth"
     service_plan_sku      = "EP1"  # Elastic Premium plan - supports VNet integration
-    # existing_service_plan = null  # Set to null to create new service plan
 
     # Function Apps to deploy (for_each loop will create these)
     function_apps = {
@@ -191,11 +190,9 @@ function_apps = {
 
     # Application Insights
     application_insights_enabled = true
-    # application_insights_connection_string = null  # Will be created automatically
-    # application_insights_key = null                # Will be created automatically
 
     # Storage Configuration
-    storage_use                   = "func"
+    storage_use                   = true
     sku_name                     = "Standard_LRS"
     customer_managed_key_enabled = false
     create_fileshare             = false
@@ -205,35 +202,12 @@ function_apps = {
     kv_resource_group_name       = "rg-dev-uan-aiapps"
     cmk_name                     = ""
 
-    # Function App Site Configuration
-    site_config = {
-      always_on   = false  # Must be false for consumption plan
-      ftps_state  = "Disabled"
-      http2_enabled = true
-
-      application_stack = {
-        dotnet_version = "6.0"
-        # python_version = "3.9"  # Uncomment for Python functions
-      }
-
-      # IP Restrictions (optional)
-      cidr_restriction = []
-      subnet_restriction = []
-      service_tags_restriction = []
-      default_ip_restriction_action = "Allow"
-
-      # CORS (optional)
-      cors = {
-        allowed_origins     = ["*"]
-        support_credentials = false
-      }
-    }
-
-    # Connection Strings (optional)
-    connection_strings = []
-
-    # Backup (optional, commented out for consumption plan)
-    # backup = null
+    # Additional module requirements
+    file_shares                  = []
+    site_config                  = null
+    connection_strings           = []
+    backup                       = null
+    artifact_url                 = null
 
     tags = {
       Environment   = "Development"
@@ -350,44 +324,32 @@ container_apps = {
     application_name    = "aiappsapi"
     environment        = "dev"
     resource_location  = "uaenorth"
-
-    # Reference to the container registry
-    registry = {
-      name                = "acraiappsdevuan8x1rva"  # From the deployed container registry
-      resource_group_name = "rg-dev-uan-aiapps"
-    }
-
-    # Reference to container app environment
-    container_app_environment_key = "app-dev-cae"
-
-    # Ingress configuration
-    ingress_external_enabled = false  # Internal only for security
-    ingress_target_port     = 8080
-    ingress_transport       = "http"
-
-    # Environment variables for the container
-    environment_variables = {
-      "ENVIRONMENT"                    = "development"
-      "LOG_LEVEL"                     = "Debug"
-      "APPLICATIONINSIGHTS_CONNECTION_STRING" = "InstrumentationKey=placeholder"  # Will be updated after deployment
-    }
-
-    # Workload profile
-    workload_profile_name = "Consumption"
-
-    # Container configuration
-    container_config = {
-      name   = "myapp-api"
-      cpu    = "0.25"
-      memory = "0.5Gi"
-      image  = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"  # Placeholder image
-    }
-
-    # Revision mode
+    container_app_environment_name = "app-dev-cae"
     revision_mode = "Single"
 
-    # Managed identity (will be linked to Function App identity if needed)
-    external_identity_ids = []
+    containers = [
+      {
+        name   = "myapp-api"
+        image  = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
+        cpu    = "0.25"
+        memory = "0.5Gi"
+        env = [
+          {
+            name  = "ENVIRONMENT"
+            value = "development"
+          },
+          {
+            name  = "LOG_LEVEL"
+            value = "Debug"
+          }
+        ]
+      }
+    ]
+
+    ingress = {
+      external_enabled = false
+      target_port     = 8080
+    }
 
     tags = {
       Environment   = "Development"
@@ -407,43 +369,31 @@ container_apps = {
     application_name    = "aiappsworker"
     environment        = "dev"
     resource_location  = "uaenorth"
-
-    # Reference to the container registry
-    registry = {
-      name                = "acraiappsdevuan8x1rva"  # From the deployed container registry
-      resource_group_name = "rg-dev-uan-aiapps"
-    }
-
-    # Reference to container app environment
-    container_app_environment_key = "app-dev-cae"
-
-    # No ingress for background worker
-    ingress_external_enabled = false
-    ingress_target_port     = 8080  # Required but not used
-
-    # Environment variables for the worker
-    environment_variables = {
-      "ENVIRONMENT"    = "development"
-      "LOG_LEVEL"     = "Info"
-      "WORKER_TYPE"   = "background"
-    }
-
-    # Workload profile
-    workload_profile_name = "Consumption"
-
-    # Container configuration for background processing
-    container_config = {
-      name   = "myapp-worker"
-      cpu    = "0.5"
-      memory = "1.0Gi"
-      image  = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"  # Placeholder image
-    }
-
-    # Revision mode
+    container_app_environment_name = "app-dev-cae"
     revision_mode = "Single"
 
-    # Managed identity
-    external_identity_ids = []
+    containers = [
+      {
+        name   = "myapp-worker"
+        image  = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
+        cpu    = "0.5"
+        memory = "1.0Gi"
+        env = [
+          {
+            name  = "ENVIRONMENT"
+            value = "development"
+          },
+          {
+            name  = "LOG_LEVEL"
+            value = "Info"
+          },
+          {
+            name  = "WORKER_TYPE"
+            value = "background"
+          }
+        ]
+      }
+    ]
 
     tags = {
       Environment   = "Development"
@@ -653,27 +603,12 @@ logic_apps_services = {
     file_share_private_dns_zone_id = "/subscriptions/bb14fef7-35fb-4743-846a-85f6051acb7f/resourceGroups/rg-dev-uan-aiapps/providers/Microsoft.Network/privateDnsZones/privatelink.file.core.windows.net"
 
     # Logic Apps Configuration - Document processing workflows
-    logic_apps = {
+    workflow_apps = {
       "DocumentProcessor" = {
         name = "logic-docprocess-aiapps-dev-uan"
-        env_vars = {
-          "FUNCTIONS_WORKER_RUNTIME"     = "dotnet"
-          "FUNCTIONS_EXTENSION_VERSION"  = "~4"
-          "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING" = "UseManagedIdentity=true"
-          "WEBSITE_CONTENTSHARE"         = "docprocessor-content"
-          "CosmosDB_Connection"          = "UseManagedIdentity=true"
-          "SearchService_Endpoint"       = "https://srch-aiapps-dev-uan-39e1hk.search.windows.net/"
-        }
       },
       "WorkflowOrchestrator" = {
         name = "logic-orchestrator-aiapps-dev-uan"
-        env_vars = {
-          "FUNCTIONS_WORKER_RUNTIME"     = "dotnet"
-          "FUNCTIONS_EXTENSION_VERSION"  = "~4"
-          "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING" = "UseManagedIdentity=true"
-          "WEBSITE_CONTENTSHARE"         = "orchestrator-content"
-          "CosmosDB_Connection"          = "UseManagedIdentity=true"
-        }
       }
     }
     definistion_file_path    = ""
