@@ -60,6 +60,23 @@ variable "ainonprod_sub_id" {
   default     = ""
 }
 
+variable "application_name" {
+  description = "Name of the application"
+  type        = string
+}
+
+variable "resource_group_name_dns" {
+  description = "Resource group name for DNS resources"
+  type        = string
+  default     = ""
+}
+
+variable "subnet_id" {
+  description = "Subnet ID for private endpoints"
+  type        = string
+  default     = ""
+}
+
 # =============================================================================
 # Module Enable/Disable Flags
 # =============================================================================
@@ -454,4 +471,245 @@ variable "logic_apps_services" {
     ])
     error_message = "Valid values for Logic App Standard SKU are: WS1, WS2, and WS3."
   }
+}
+
+# =============================================================================
+# Module Variables for New Infrastructure Components
+# =============================================================================
+
+# Add missing enable variable for storage accounts
+variable "enable_storage_accounts" {
+  description = "Enable Storage Accounts module deployment (1 = deploy, 0 = skip)"
+  type        = number
+  default     = 1
+}
+
+variable "enable_log_analytics_workspaces" {
+  description = "Enable Log Analytics Workspaces module deployment (1 = deploy, 0 = skip)"
+  type        = number
+  default     = 1
+}
+
+# =============================================================================
+# Key Vault Module Variables
+# =============================================================================
+
+variable "key_vaults" {
+  description = "Configuration for Key Vaults to be created"
+  type = map(object({
+    resource_group_name           = string
+    application_name              = string
+    environment                   = string
+    resource_location             = string
+    enabled_for_deployment        = optional(bool, false)
+    enabled_for_disk_encryption   = optional(bool, false)
+    purge_protection_enabled      = optional(bool, true)
+    public_network_access_enabled = optional(bool, false)
+    rbac_authorization_enabled    = optional(bool, true)
+    sku_name                      = optional(string, "standard")
+    soft_delete_retention_days    = optional(number, 7)
+    network_acls = optional(object({
+      bypass                     = optional(string, "AzureServices")
+      default_action            = optional(string, "Allow")
+      ip_rules                  = optional(list(string), [])
+      virtual_network_subnet_ids = optional(list(string), [])
+    }), {})
+    role_assignments = optional(map(object({
+      role_definition_id_or_name = string
+      principal_id               = string
+      description                = optional(string, "")
+    })), {})
+    lock = optional(object({
+      kind = optional(string, "None")
+    }), {})
+    diagnostic_settings = optional(map(object({
+      name                         = string
+      log_groups                   = optional(list(string), ["allLogs"])
+      metric_categories            = optional(list(string), ["AllMetrics"])
+      log_analytics_destination_type = optional(string, "Dedicated")
+      workspace_resource_id        = optional(string, "")
+    })), {})
+    privatelink_subnet = optional(object({
+      name           = string
+      vnet_name      = string
+      resource_group = string
+    }), null)
+    private_dns_zone_name = optional(string, "")
+    private_dns_zone_id   = optional(string, "")
+    tags                  = optional(map(string), {})
+  }))
+  default = {}
+}
+
+# =============================================================================
+# Storage Account Module Variables
+# =============================================================================
+
+variable "storage_accounts" {
+  description = "Configuration for Storage Accounts to be created"
+  type = map(object({
+    resource_group_name                = string
+    location                          = string
+    application_name                  = string
+    storage_account_name              = string
+    account_kind                      = optional(string, "StorageV2")
+    skuname                          = optional(string, "Standard_RAGRS")
+    min_tls_version                  = optional(string, "TLS1_2")
+    public_network_access_enabled    = optional(bool, true)
+    allow_nested_items_to_be_public  = optional(bool, false)
+    cross_tenant_replication_enabled = optional(bool, true)
+    infrastructure_encryption_enabled = optional(bool, true)
+    customer_managed_key             = optional(bool, true)
+    azurerm_key_vault_key           = optional(string, null)
+    kv_name                         = optional(string, null)
+    kv_resource_group_name          = optional(string, null)
+    key_expiration_date             = optional(string, "2027-12-31T23:59:59Z")
+    managed_identity_type           = optional(string, null)
+    managed_identity_ids            = optional(list(string), null)
+    blob_soft_delete_retention_days = optional(number, 7)
+    container_soft_delete_retention_days = optional(number, 7)
+    enable_versioning               = optional(bool, true)
+    last_access_time_enabled        = optional(bool, false)
+    management_policy_rules = optional(list(object({
+      prefix_match               = set(string)
+      tier_to_cool_after_days    = number
+      tier_to_archive_after_days = number
+      delete_after_days          = number
+      snapshot_delete_after_days = number
+    })), [])
+    privatelink_subnet = optional(object({
+      name           = string
+      vnet_name      = string
+      resource_group = string
+    }), null)
+    private_dns_zone_ids = optional(list(string), null)
+    tags                 = optional(map(string), {})
+  }))
+  default = {}
+}
+
+# =============================================================================
+# AI Search Module Variables
+# =============================================================================
+
+variable "ai_search_services" {
+  description = "Configuration for AI Search Services to be created"
+  type = map(object({
+    resource_group_name    = string
+    location              = string
+    application_name      = string
+    environment           = string
+    location_shortcode    = optional(string, "")
+    sku                   = optional(string, "standard")
+    partition_count       = optional(number, 1)
+    replica_count         = optional(number, 1)
+    hosting_mode          = optional(string, "default")
+    public_network_access_enabled = optional(bool, false)
+    allowed_ips           = optional(list(string), [])
+    authentication_failure_mode = optional(string, "http401WithBearerChallenge")
+    customer_managed_key_enforcement_enabled = optional(bool, false)
+    enable_system_assigned_identity = optional(bool, true)
+    private_endpoint_enabled = optional(bool, true)
+    private_endpoint_subnet_name = optional(string, "")
+    virtual_network_name = optional(string, "")
+    network_resource_group_name = optional(string, "")
+    private_dns_zone_id = optional(string, "")
+    log_analytics_workspace_id = optional(string, "")
+    diagnostic_logs_retention_days = optional(number, 30)
+    diagnostic_metrics_retention_days = optional(number, 30)
+    contributor_principal_ids = optional(list(string), [])
+    index_data_contributor_principal_ids = optional(list(string), [])
+    index_data_reader_principal_ids = optional(list(string), [])
+    tags        = optional(map(string), {})
+    cost_center = optional(string, "")
+    owner       = optional(string, "")
+    project     = optional(string, "")
+  }))
+  default = {}
+}
+
+# =============================================================================
+# Cosmos DB Module Variables
+# =============================================================================
+
+variable "cosmos_accounts" {
+  description = "Configuration for Cosmos DB Accounts to be created"
+  type = map(object({
+    application_name     = string
+    environment         = string
+    resource_group_name = string
+    location            = string
+    cosmosdb_account_name = string
+    offer_type          = optional(string, "Standard")
+    kind                = optional(string, "GlobalDocumentDB")
+    enable_automatic_failover = optional(bool, true)
+    enable_multiple_write_locations = optional(bool, false)
+    public_network_access_enabled = optional(bool, false)
+    consistency_policy = optional(object({
+      consistency_level       = string
+      max_interval_in_seconds = optional(number, 300)
+      max_staleness_prefix    = optional(number, 100000)
+    }), {
+      consistency_level = "Session"
+    })
+    capabilities = optional(list(string), [])
+    geo_location = optional(list(object({
+      location          = string
+      failover_priority = number
+      zone_redundant    = optional(bool, false)
+    })), [])
+    enable_private_endpoint = optional(bool, true)
+    privatelink_subnet = optional(object({
+      name           = string
+      vnet_name      = string
+      resource_group = string
+    }), null)
+    private_dns_zone_ids   = optional(list(string), [])
+    virtual_network_rules  = optional(list(string), [])
+    backup = optional(object({
+      type = string
+      tier = optional(string, "Continuous30Days")
+    }), {
+      type = "Continuous"
+      tier = "Continuous30Days"
+    })
+    sql_databases = optional(list(object({
+      name = string
+    })), [])
+    sql_containers = optional(list(object({
+      name               = string
+      database_name      = string
+      partition_key_path = string
+    })), [])
+    tags = optional(map(string), {})
+  }))
+  default = {}
+}
+
+# =============================================================================
+# Log Analytics Workspace Module Variables (Future Implementation)
+# =============================================================================
+
+variable "log_analytics_workspaces" {
+  description = "Configuration for Log Analytics Workspaces to be created"
+  type = map(object({
+    resource_group_name = string
+    location           = string
+    application_name   = string
+    environment        = string
+    sku               = optional(string, "PerGB2018")
+    retention_in_days = optional(number, 30)
+    tags              = optional(map(string), {})
+  }))
+  default = {}
+}
+
+# =============================================================================
+# Common Variables
+# =============================================================================
+
+variable "common_tags" {
+  description = "Common tags to be applied to all resources"
+  type        = map(string)
+  default     = {}
 }

@@ -19,22 +19,24 @@ existing_vnet_rg            = "rg-dev-uan-aiapps"
 # Module Enable/Disable Controls
 # =============================================================================
 
-# Customer provides these resources - disable creation, enable data sources
-enable_existing_key_vaults              = 1
-enable_existing_storage_accounts        = 1
-enable_existing_ai_search_services      = 1
-enable_existing_log_analytics_workspaces = 0  # No existing LAW found, using created resources
-enable_existing_cosmos_db               = 0  # No existing Cosmos DB found, using created resources
+# Deploy new resources using modules - disable existing resources, enable creation
+enable_existing_key_vaults              = 0  # Deploy new using kv module
+enable_existing_storage_accounts        = 0  # Deploy new using storage module
+enable_existing_ai_search_services      = 0  # Deploy new using AI Search module
+enable_existing_log_analytics_workspaces = 0  # Deploy new using LAW module
+enable_existing_cosmos_db               = 0  # Deploy new using Cosmos DB module
 
-# Only deploy application services
-enable_key_vaults                   = 0  # Customer provided
+# Deploy application services using modules
+enable_key_vaults                   = 1  # Deploy new using module
+enable_storage_accounts             = 1  # Deploy new using module
 enable_function_apps               = 1  # Deploy new
 enable_container_registries        = 1  # Deploy new
 enable_container_app_environments  = 1  # Deploy new
 enable_container_apps              = 1  # Deploy new
-enable_ai_search_services          = 0  # Customer provided
-enable_cosmos_db                   = 1  # Deploy new - customer resource not found
+enable_ai_search_services          = 1  # Deploy new using module
+enable_cosmos_db                   = 1  # Deploy new using module
 enable_logic_apps                  = 1  # Deploy new
+enable_log_analytics_workspaces    = 1  # Deploy new using module
 
 # =============================================================================
 # Existing Resources (Customer Provided)
@@ -79,6 +81,276 @@ existing_ai_search_services = {
 # Resource-Specific Configurations (Legacy - commented out, using existing resources)
 # =============================================================================
 
+# Storage Accounts Configuration (New Module Implementation)
+storage_accounts = {
+  "app-dev-storage" = {
+    resource_group_name                = "rg-dev-uan-aiapps"
+    location                          = "uaenorth"
+    application_name                  = "aiapps"
+    storage_account_name              = "staiappsdevuan"
+    account_kind                      = "StorageV2"
+    skuname                          = "Standard_LRS"
+    min_tls_version                  = "TLS1_2"
+    public_network_access_enabled    = false
+    allow_nested_items_to_be_public  = false
+    cross_tenant_replication_enabled = false
+    infrastructure_encryption_enabled = true
+    customer_managed_key             = false
+    azurerm_key_vault_key           = null
+    kv_name                         = null
+    kv_resource_group_name          = null
+    key_expiration_date             = "2027-12-31T23:59:59Z"
+    managed_identity_type           = "SystemAssigned"
+    managed_identity_ids            = null
+    blob_soft_delete_retention_days = 7
+    container_soft_delete_retention_days = 7
+    enable_versioning               = true
+    last_access_time_enabled        = false
+    management_policy_rules = [
+      {
+        prefix_match               = ["logs/"]
+        tier_to_cool_after_days    = 30
+        tier_to_archive_after_days = 90
+        delete_after_days          = 365
+        snapshot_delete_after_days = 30
+      }
+    ]
+    privatelink_subnet = {
+      name           = "snet-privatelink"
+      vnet_name      = "vnet-aiapps-dev-uan"
+      resource_group = "rg-dev-uan-aiapps"
+    }
+    private_dns_zone_ids = [
+      "/subscriptions/bb14fef7-35fb-4743-846a-85f6051acb7f/resourceGroups/rg-dev-uan-aiapps/providers/Microsoft.Network/privateDnsZones/privatelink.blob.core.windows.net",
+      "/subscriptions/bb14fef7-35fb-4743-846a-85f6051acb7f/resourceGroups/rg-dev-uan-aiapps/providers/Microsoft.Network/privateDnsZones/privatelink.file.core.windows.net"
+    ]
+    tags = {
+      Environment   = "Development"
+      Application   = "AIApps"
+      Owner         = "DevOps Team"
+      CostCenter    = "IT-DEV"
+      Project       = "ApplicationLandingZone"
+      CreatedBy     = "Terraform"
+      CreatedDate   = "2025-10-10"
+      ResourceType  = "Storage Account"
+      Purpose       = "Application Data Storage"
+    }
+  }
+}
+
+# Key Vault Configuration (New Module Implementation)
+key_vaults = {
+  "app-dev-kv" = {
+    resource_group_name           = "rg-dev-uan-aiapps"
+    application_name              = "aiapps"
+    environment                   = "dev"
+    resource_location             = "uaenorth"
+    enabled_for_deployment        = true
+    enabled_for_disk_encryption   = true
+    purge_protection_enabled      = true
+    public_network_access_enabled = false
+    rbac_authorization_enabled    = true
+    sku_name                      = "standard"
+    soft_delete_retention_days    = 7
+    network_acls = {
+      bypass         = "AzureServices"
+      default_action = "Allow"
+      ip_rules       = []
+      virtual_network_subnet_ids = []
+    }
+    role_assignments = {
+      # Function App's User-Assigned Managed Identity access to secrets
+      "func-app-secrets-user" = {
+        role_definition_id_or_name = "Key Vault Secrets User"
+        principal_id               = "26940680-91d1-4a89-8caf-ab7693eccc61"
+        description                = "Function App access to Key Vault secrets"
+      }
+    }
+    lock = {
+      kind = "None"
+    }
+    diagnostic_settings = {
+      # Commented out until Log Analytics workspace is available
+      # "default" = {
+      #   name                         = "kv-diagnostics-dev"
+      #   log_groups                   = ["allLogs"]
+      #   metric_categories            = ["AllMetrics"]
+      #   log_analytics_destination_type = "Dedicated"
+      #   workspace_resource_id        = "/subscriptions/SUBSCRIPTION_ID/resourceGroups/RESOURCE_GROUP_NAME/providers/Microsoft.OperationalInsights/workspaces/WORKSPACE_NAME"
+      # }
+    }
+    privatelink_subnet = {
+      name           = "snet-privatelink"
+      vnet_name      = "vnet-aiapps-dev-uan"
+      resource_group = "rg-dev-uan-aiapps"
+    }
+    private_dns_zone_name = "privatelink.vaultcore.azure.net"
+    private_dns_zone_id   = "/subscriptions/bb14fef7-35fb-4743-846a-85f6051acb7f/resourceGroups/rg-dev-uan-aiapps/providers/Microsoft.Network/privateDnsZones/privatelink.vaultcore.azure.net"
+    tags = {
+      Environment   = "Development"
+      Application   = "MyApp"
+      Owner         = "DevOps Team"
+      CostCenter    = "IT-DEV"
+      Project       = "ApplicationLandingZone"
+      CreatedBy     = "Terraform"
+      CreatedDate   = "2025-09-17"
+    }
+  }
+}
+
+# AI Search Services Configuration (New Module Implementation)
+ai_search_services = {
+  "app-dev-search" = {
+    resource_group_name    = "rg-dev-uan-aiapps"
+    location              = "uaenorth"
+    application_name      = "aiapps"
+    environment           = "dev"
+    location_shortcode    = "uan"
+    sku                   = "standard"
+    partition_count       = 1
+    replica_count         = 1
+    hosting_mode          = "default"
+    public_network_access_enabled = false
+    allowed_ips           = []
+    authentication_failure_mode = "http401WithBearerChallenge"
+    customer_managed_key_enforcement_enabled = false
+    enable_system_assigned_identity = true
+
+    # Private Endpoint Configuration
+    private_endpoint_enabled = true
+    private_endpoint_subnet_name = "snet-privatelink"
+    virtual_network_name = "vnet-aiapps-dev-uan"
+    network_resource_group_name = "rg-dev-uan-aiapps"
+    private_dns_zone_id = "/subscriptions/bb14fef7-35fb-4743-846a-85f6051acb7f/resourceGroups/rg-dev-uan-aiapps/providers/Microsoft.Network/privateDnsZones/privatelink.search.windows.net"
+
+    # Monitoring Configuration
+    log_analytics_workspace_id = "/subscriptions/bb14fef7-35fb-4743-846a-85f6051acb7f/resourceGroups/rg-dev-uan-aiapps/providers/Microsoft.OperationalInsights/workspaces/law-aiapps-dev-uaenorth"
+    diagnostic_logs_retention_days = 30
+    diagnostic_metrics_retention_days = 30
+
+    # RBAC Configuration
+    contributor_principal_ids = []
+    index_data_contributor_principal_ids = []
+    index_data_reader_principal_ids = []
+
+    tags = {
+      Environment   = "dev"
+      Application   = "aiapps"
+      Owner         = "AI Team"
+      CostCenter    = "AI-DEV"
+      Project       = "AI Services"
+      CreatedBy     = "Terraform"
+      CreatedDate   = "2025-10-07"
+    }
+    cost_center = "AI-DEV"
+    owner = "AI Team"
+    project = "AI Services"
+  }
+}
+
+# Cosmos DB Configuration (New Module Implementation)
+cosmos_accounts = {
+  "app-dev-cosmos" = {
+    application_name     = "aiapps"
+    environment         = "dev"
+    resource_group_name = "rg-dev-uan-aiapps"
+    location            = "uaenorth"
+    cosmosdb_account_name = "cosmos-aiapps-dev-uan-km"
+
+    # Account Configuration
+    offer_type              = "Standard"
+    kind                    = "GlobalDocumentDB"
+    enable_automatic_failover = true
+    enable_multiple_write_locations = false
+    public_network_access_enabled = false
+
+    # Consistency Policy
+    consistency_policy = {
+      consistency_level       = "Session"
+      max_interval_in_seconds = 300
+      max_staleness_prefix    = 100000
+    }
+
+    # Capabilities (Serverless mode)
+    capabilities = ["EnableServerless"]
+
+    # Geo Location
+    geo_location = [
+      {
+        location          = "uaenorth"
+        failover_priority = 0
+        zone_redundant    = false
+      }
+    ]
+
+    # Private Endpoint Configuration
+    enable_private_endpoint = true
+    privatelink_subnet = {
+      name           = "snet-privatelink"
+      vnet_name      = "vnet-aiapps-dev-uan"
+      resource_group = "rg-dev-uan-aiapps"
+    }
+    private_dns_zone_ids   = [
+      "/subscriptions/bb14fef7-35fb-4743-846a-85f6051acb7f/resourceGroups/rg-dev-uan-aiapps/providers/Microsoft.Network/privateDnsZones/privatelink.documents.azure.com"
+    ]
+    virtual_network_rules  = []
+
+    # Backup Configuration - Continuous backup for enterprise requirements
+    backup = {
+      type = "Continuous"
+      tier = "Continuous30Days"
+    }
+
+    # Database and Container Configuration
+    sql_databases = [
+      {
+        name = "KnowledgeBase"
+      },
+      {
+        name = "DocumentStore"
+      },
+      {
+        name = "UserProfiles"
+      }
+    ]
+
+    sql_containers = [
+      {
+        name               = "Documents"
+        database_name      = "KnowledgeBase"
+        partition_key_path = "/tenantId"
+      },
+      {
+        name               = "Embeddings"
+        database_name      = "KnowledgeBase"
+        partition_key_path = "/documentId"
+      },
+      {
+        name               = "Files"
+        database_name      = "DocumentStore"
+        partition_key_path = "/categoryId"
+      },
+      {
+        name               = "Profiles"
+        database_name      = "UserProfiles"
+        partition_key_path = "/userId"
+      }
+    ]
+
+    tags = {
+      Environment   = "Development"
+      Application   = "AIApps"
+      Owner         = "DevOps Team"
+      CostCenter    = "IT-DEV"
+      Project       = "ApplicationLandingZone"
+      CreatedBy     = "Terraform"
+      CreatedDate   = "2025-09-24"
+      ResourceType  = "Cosmos DB"
+      Purpose       = "Knowledge Management Data Store"
+    }
+  }
+}
+
 # key_vaults = {
 #   "app-dev-kv" = {
 #     resource_group_name           = "rg-dev-uan-aiapps"
@@ -106,7 +378,6 @@ existing_ai_search_services = {
 #         description                = "Function App access to Key Vault secrets"
 #       }
 #     }
-#     owners = "DevOps Team"
 #     lock = {
 #       kind = "None"
 #     }
@@ -461,108 +732,6 @@ container_apps = {
 #     project = "AI Services"
 #   }
 # }
-
-cosmos_db_services = {
-  "app-dev-cosmos" = {
-    application_name     = "aiapps"
-    environment         = "dev"
-    resource_group_name = "rg-dev-uan-aiapps"
-    location            = "uaenorth"
-    cosmosdb_account_name = "cosmos-aiapps-dev-uan-km"
-
-    # Account Configuration
-    offer_type              = "Standard"
-    kind                    = "GlobalDocumentDB"
-    enable_automatic_failover = true
-    enable_multiple_write_locations = false
-    public_network_access_enabled = false
-
-    # Consistency Policy
-    consistency_policy = {
-      consistency_level       = "Session"
-      max_interval_in_seconds = 300
-      max_staleness_prefix    = 100000
-    }
-
-    # Capabilities (Serverless mode)
-    capabilities = ["EnableServerless"]
-
-    # Geo Location
-    geo_location = [
-      {
-        location          = "uaenorth"
-        failover_priority = 0
-        zone_redundant    = false
-      }
-    ]
-
-    # Private Endpoint Configuration
-    enable_private_endpoint = true
-    privatelink_subnet = {
-      name           = "snet-privatelink"
-      vnet_name      = "vnet-aiapps-dev-uan"
-      resource_group = "rg-dev-uan-aiapps"
-    }
-    private_dns_zone_ids   = [
-      "/subscriptions/bb14fef7-35fb-4743-846a-85f6051acb7f/resourceGroups/rg-dev-uan-aiapps/providers/Microsoft.Network/privateDnsZones/privatelink.documents.azure.com"
-    ]
-    virtual_network_rules  = []
-
-    # Backup Configuration - Continuous backup for enterprise requirements
-    backup = {
-      type = "Continuous"
-      tier = "Continuous30Days"
-    }
-
-    # Database and Container Configuration
-    sql_databases = [
-      {
-        name = "KnowledgeBase"
-      },
-      {
-        name = "DocumentStore"
-      },
-      {
-        name = "UserProfiles"
-      }
-    ]
-
-    sql_containers = [
-      {
-        name               = "Documents"
-        database_name      = "KnowledgeBase"
-        partition_key_path = "/tenantId"
-      },
-      {
-        name               = "Embeddings"
-        database_name      = "KnowledgeBase"
-        partition_key_path = "/documentId"
-      },
-      {
-        name               = "Files"
-        database_name      = "DocumentStore"
-        partition_key_path = "/categoryId"
-      },
-      {
-        name               = "Profiles"
-        database_name      = "UserProfiles"
-        partition_key_path = "/userId"
-      }
-    ]
-
-    tags = {
-      Environment   = "Development"
-      Application   = "AIApps"
-      Owner         = "DevOps Team"
-      CostCenter    = "IT-DEV"
-      Project       = "ApplicationLandingZone"
-      CreatedBy     = "Terraform"
-      CreatedDate   = "2025-09-24"
-      ResourceType  = "Cosmos DB"
-      Purpose       = "Knowledge Management Data Store"
-    }
-  }
-}
 
 logic_apps_services = {
   "app-dev-logic" = {
