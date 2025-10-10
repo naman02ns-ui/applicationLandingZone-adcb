@@ -1,69 +1,49 @@
 # Outputs for Application Landing Zone
 
 # =============================================================================
-# Existing Resources Outputs (Customer Provided)
+# ADCB Module Outputs (Deployed by Terraform)
 # =============================================================================
 
-# Existing Key Vault Outputs
-output "existing_key_vaults" {
-  description = "Existing Key Vault details"
-  value = var.enable_existing_key_vaults > 0 ? {
-    for k, v in data.azurerm_key_vault.existing : k => {
-      id   = v.id
-      name = v.name
-      uri  = v.vault_uri
-    }
-  } : {}
+# Key Vault Outputs
+output "key_vault" {
+  description = "Key Vault details from ADCB module"
+  value = {
+    id   = module.key_vaults.key_vault_id
+    name = module.key_vaults.key_vault_name
+    uri  = module.key_vaults.key_vault_uri
+  }
 }
 
-# Existing Storage Account Outputs
-output "existing_storage_accounts" {
-  description = "Existing Storage Account details"
-  value = var.enable_existing_storage_accounts > 0 ? {
-    for k, v in data.azurerm_storage_account.existing : k => {
-      id   = v.id
-      name = v.name
-    }
-  } : {}
+# AI Search Service Outputs
+output "ai_search_service" {
+  description = "AI Search Service details from ADCB module"
+  value = {
+    id   = module.ai_search_services.search_service_id
+    name = module.ai_search_services.search_service_name
+  }
 }
 
-# Existing AI Search Service Outputs
-output "existing_ai_search_services" {
-  description = "Existing AI Search Service details"
-  value = var.enable_existing_ai_search_services > 0 ? {
-    for k, v in data.azurerm_search_service.existing : k => {
-      id   = v.id
-      name = v.name
-    }
-  } : {}
+# Cosmos DB Account Outputs
+output "cosmos_db_account" {
+  description = "Cosmos DB Account details from ADCB module"
+  value = {
+    id       = module.cosmos_db.cosmosdb_account_id
+    name     = module.cosmos_db.cosmosdb_account_name
+    endpoint = module.cosmos_db.cosmosdb_account_endpoint
+  }
 }
 
-# Existing Log Analytics Workspace Outputs
-output "existing_log_analytics_workspaces" {
-  description = "Existing Log Analytics Workspace details"
-  value = var.enable_existing_log_analytics_workspaces > 0 ? {
-    for k, v in data.azurerm_log_analytics_workspace.existing : k => {
-      id   = v.id
-      name = v.name
-      workspace_id = v.workspace_id
-    }
-  } : {}
-}
-
-# Existing Cosmos DB Account Outputs
-output "existing_cosmos_db_accounts" {
-  description = "Existing Cosmos DB Account details"
-  value = var.enable_existing_cosmos_db > 0 ? {
-    for k, v in data.azurerm_cosmosdb_account.existing : k => {
-      id   = v.id
-      name = v.name
-      endpoint = v.endpoint
-    }
-  } : {}
+# Storage Account Outputs
+output "storage_account" {
+  description = "Storage Account details from ADCB module"
+  value = {
+    id   = module.storage_accounts.storage_account_id
+    name = module.storage_accounts.storage_account_name
+  }
 }
 
 # =============================================================================
-# New Resources Outputs (Deployed by Terraform)
+# Legacy Application Services Outputs (if needed)
 # =============================================================================
 
 # Function App Outputs
