@@ -5,7 +5,7 @@
 module "container_registries" {
   source = "../container-registry"
 
-  for_each = var.enable_container_registries > 0 ? var.container_registries : {}
+  for_each = var.container_registries
 
   resource_location               = each.value.resource_location
   resource_group_name            = each.value.resource_group_name
@@ -30,5 +30,5 @@ module "container_registries" {
   encryption_enabled            = each.value.encryption_enabled
   privatelink_subnet            = each.value.privatelink_subnet
   private_dns_zone_id          = each.value.private_dns_zone_id
-  tags                          = each.value.tags
+  tags                          = local.tags
 }
