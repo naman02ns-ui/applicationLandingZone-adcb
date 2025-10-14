@@ -11,9 +11,18 @@ variable "location_short" {
 }
 
 
-variable "environment" {
-  description = "Project environment"
+variable "application_name" {
   type        = string
+  description = "The application that requires this resource"
+}
+
+variable "environment" {
+  type        = string
+  description = "Environment to provision resources"
+  validation {
+    condition     = can(regex("^(?:dev|qa|sit|uat|preprod|prod|nonprod)$", var.environment))
+    error_message = "Allowed values for environment: dev,qa,uat,sit,preprod,prod"
+  }
 }
 
 variable "resource_group_name" {
@@ -105,6 +114,7 @@ variable "terraform_timeouts" {
   default = null
 }
 
+/*
 variable "search_service_name" {
   description = "This is the name of the search service"
 
@@ -113,7 +123,7 @@ variable "search_service_name" {
 variable "search_service_id" {
   description = "This is the id of the search service"
   type  = string
-}
+} */
 
 variable "default_tags_enabled" {
   description = "Option to enable or disable default tags."
@@ -133,11 +143,6 @@ variable "resource_location" {
   default     = "uaenorth"
 }
 
-variable "application_name" {
-  type        = string
-  description = "The application that requires this resource"
-}
-
 variable "ai_monitoring" {
   description = "The log analytics workspace to be used for the ai metrics monitoring"
   type = object({
@@ -150,4 +155,19 @@ variable "ai_monitoring" {
   default  =  {
     enabled  = false
   }
+}
+
+variable "private_dns_zone_id" {
+  type        = string
+  description = "ID of the private dns zone for private link"
+}
+
+variable "privatelink_subnet" {
+  type = object({
+    name           = string
+    vnet_name      = string
+    resource_group = string
+  })
+  description = "Subnet where the private link is required."
+  default     = null
 }

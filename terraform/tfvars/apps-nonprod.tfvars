@@ -1,8 +1,11 @@
 ## AI Apps NonProd##
 
-environment = "nonprod"
+environment = "dev"
 application_name = "aiapps"
 ainonprod_sub_id = "eed58c8e-f08c-4839-9bfe-469f4705d062"  #- This is sub ID for AI-Apps non-prod
+
+#--------------AI Search--------------------#
+replica_count = 3
 
 #--------------Network--------------------#
 vnet_address_spaces = ["10.114.164.0/22"]
@@ -133,7 +136,7 @@ app_service_plans = {
     resource_location        = "uaenorth"
     resource_group_name     = "rg-aiapps-nonprod-uaenorth-001"
     application_name        = "aiapps"
-    environment             = "nonprod"
+    environment             = "dev"
     service_plan_sku        = "EP1"
     max_elastic_worker_count = 20
     worker_count            = null
@@ -145,7 +148,7 @@ app_service_plans = {
     resource_location        = "uaenorth"
     resource_group_name     = "rg-aiapps-nonprod-uaenorth-001"
     application_name        = "aiapps"
-    environment             = "nonprod"
+    environment             = "dev"
     service_plan_sku        = "EP1"
     max_elastic_worker_count = 15
     worker_count            = null
@@ -161,7 +164,7 @@ container_registries = {
     resource_location               = "uaenorth"
     resource_group_name            = "rg-aiapps-nonprod-uaenorth-001"
     application_name               = "aiapps"
-    environment                    = "nonprod"
+    environment                    = "dev"
     zone_redundancy_enabled        = false
     key_expiration_date           = null
     sku                           = "Standard"
@@ -179,6 +182,7 @@ container_registries = {
     public_network_access_enabled = true
     data_endpoint_enabled         = false
     encryption_enabled            = false
+    private_dns_zone_id           = null
   }
 }
 
@@ -190,7 +194,7 @@ container_app_environments = {
     resource_location          = "uaenorth"
     resource_group_name        = "rg-aiapps-nonprod-uaenorth-001"
     application_name           = "aiapps"
-    environment               = "nonprod"
+    environment               = "dev"
     subnet = {
       name           = "snet-ai-apps-uaenorth-001"
       vnet_name      = "vnet-aiapps-nonprod-uaenorth-001"
@@ -204,91 +208,91 @@ container_app_environments = {
   }
 }
 
-#--------------Container Apps--------------------#
+# --------------Container Apps--------------------#
 # Container Apps require pre-built container images in the registry
 # Commenting out until images are available
 
-# container_apps = {
-#   "aiapps-api-service" = {
-#     resource_location             = "uaenorth"
-#     resource_group_name          = "rg-aiapps-nonprod-uaenorth-001"
-#     application_name             = "aiapps"
-#     environment                  = "nonprod"
-#     container_app_environment_name = "aiapps-nonprod-cae"
-#     ingress = {
-#       external_enabled = true
-#       target_port     = 8080
-#     }
-#     containers = [{
-#       name   = "api-service"
-#       cpu    = "0.5"
-#       memory = "1Gi"
-#       image  = "aiapps-nonprod-acr.azurecr.io/api-service:latest"
-#     }]
-#     revision_mode = "Single"
-#     identity = {
-#       identity_ids = ["/subscriptions/eed58c8e-f08c-4839-9bfe-469f4705d062/resourceGroups/rg-aiapps-nonprod-uaenorth-001/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-aiapps-api-nonprod-001"]
-#     }
-#     tags = {
-#       Environment = "nonprod"
-#       Service     = "API"
-#     }
-#   }
-#
-#   "aiapps-processing-service" = {
-#     resource_location             = "uaenorth"
-#     resource_group_name          = "rg-aiapps-nonprod-uaenorth-001"
-#     application_name             = "aiapps"
-#     environment                  = "nonprod"
-#     container_app_environment_name = "aiapps-nonprod-cae"
-#     ingress = {
-#       external_enabled = false
-#       target_port     = 8080
-#     }
-#     containers = [{
-#       name   = "processing-service"
-#       cpu    = "1.0"
-#       memory = "2Gi"
-#       image  = "aiapps-nonprod-acr.azurecr.io/processing-service:latest"
-#     }]
-#     revision_mode = "Single"
-#     identity = {
-#       identity_ids = ["/subscriptions/eed58c8e-f08c-4839-9bfe-469f4705d062/resourceGroups/rg-aiapps-nonprod-uaenorth-001/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-aiapps-processing-nonprod-001"]
-#     }
-#     tags = {
-#       Environment = "nonprod"
-#       Service     = "Processing"
-#     }
-#   }
+container_apps = {
+  "aiapps-api-service" = {
+    resource_location             = "uaenorth"
+    resource_group_name          = "rg-aiapps-nonprod-uaenorth-001"
+    application_name             = "aiapps"
+    environment                  = "nonprod"
+    container_app_environment_name = "aiapps-nonprod-cae"
+    ingress = {
+      external_enabled = true
+      target_port     = 8080
+    }
+    containers = [{
+      name   = "api-service"
+      cpu    = "0.5"
+      memory = "1Gi"
+      image  = "aiapps-nonprod-acr.azurecr.io/api-service:latest"
+    }]
+    revision_mode = "Single"
+    identity = {
+      identity_ids = ["/subscriptions/eed58c8e-f08c-4839-9bfe-469f4705d062/resourceGroups/rg-aiapps-nonprod-uaenorth-001/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-aiapps-api-nonprod-001"]
+    }
+    tags = {
+      Environment = "nonprod"
+      Service     = "API"
+    }
+  }
 
-#   "aiapps-notification-service" = {
-#     resource_location             = "uaenorth"
-#     resource_group_name          = "rg-aiapps-nonprod-uaenorth-001"
-#     application_name             = "aiapps"
-#     environment                  = "nonprod"
-#     container_app_environment_name = "aiapps-nonprod-cae"
-#     ingress = {
-#       external_enabled = false
-#       target_port     = 8080
-#     }
-#     containers = [{
-#       name   = "notification-service"
-#       cpu    = "0.25"
-#       memory = "0.5Gi"
-#       image  = "aiapps-nonprod-acr.azurecr.io/notification-service:latest"
-#     }]
-#     revision_mode = "Single"
-#     identity = {
-#       identity_ids = ["/subscriptions/eed58c8e-f08c-4839-9bfe-469f4705d062/resourceGroups/rg-aiapps-nonprod-uaenorth-001/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-aiapps-notification-nonprod-001"]
-#     }
-#     tags = {
-#       Environment = "nonprod"
-#       Service     = "Notification"
-#     }
-#   }
-# }
+  "aiapps-processing-service" = {
+    resource_location             = "uaenorth"
+    resource_group_name          = "rg-aiapps-nonprod-uaenorth-001"
+    application_name             = "aiapps"
+    environment                  = "nonprod"
+    container_app_environment_name = "aiapps-nonprod-cae"
+    ingress = {
+      external_enabled = false
+      target_port     = 8080
+    }
+    containers = [{
+      name   = "processing-service"
+      cpu    = "1.0"
+      memory = "2Gi"
+      image  = "aiapps-nonprod-acr.azurecr.io/processing-service:latest"
+    }]
+    revision_mode = "Single"
+    identity = {
+      identity_ids = ["/subscriptions/eed58c8e-f08c-4839-9bfe-469f4705d062/resourceGroups/rg-aiapps-nonprod-uaenorth-001/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-aiapps-processing-nonprod-001"]
+    }
+    tags = {
+      Environment = "nonprod"
+      Service     = "Processing"
+    }
+  }
 
-container_apps = {}
+  "aiapps-notification-service" = {
+    resource_location             = "uaenorth"
+    resource_group_name          = "rg-aiapps-nonprod-uaenorth-001"
+    application_name             = "aiapps"
+    environment                  = "nonprod"
+    container_app_environment_name = "aiapps-nonprod-cae"
+    ingress = {
+      external_enabled = false
+      target_port     = 8080
+    }
+    containers = [{
+      name   = "notification-service"
+      cpu    = "0.25"
+      memory = "0.5Gi"
+      image  = "aiapps-nonprod-acr.azurecr.io/notification-service:latest"
+    }]
+    revision_mode = "Single"
+    identity = {
+      identity_ids = ["/subscriptions/eed58c8e-f08c-4839-9bfe-469f4705d062/resourceGroups/rg-aiapps-nonprod-uaenorth-001/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-aiapps-notification-nonprod-001"]
+    }
+    tags = {
+      Environment = "nonprod"
+      Service     = "Notification"
+    }
+  }
+}
+
+# container_apps = {}
 
 #--------------Function Apps--------------------#
 

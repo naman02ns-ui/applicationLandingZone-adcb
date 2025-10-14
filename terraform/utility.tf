@@ -1,3 +1,3 @@
 module "res-id" {
-  source = "../azure-terraform/modules/utility/random-identifier"
+  source = "../adcb-iac/utility/random-identifier"
 }

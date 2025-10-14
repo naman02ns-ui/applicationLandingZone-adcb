@@ -3,7 +3,7 @@
 # =============================================================================
 
 module "logic_apps" {
-  source = "../../IaC-ADCBModules/app-service/logic-app"
+  source = "../adcb-iac/app-service/logic-app"
 
   for_each = var.logic_apps
 

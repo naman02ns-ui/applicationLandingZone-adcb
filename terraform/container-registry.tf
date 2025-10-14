@@ -3,7 +3,7 @@
 # =============================================================================
 
 module "container_registries" {
-  source = "../container-registry"
+  source = "../adcb-iac/container-registry"
 
   for_each = var.container_registries
 

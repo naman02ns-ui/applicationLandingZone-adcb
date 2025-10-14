@@ -1,242 +1,239 @@
-# Variables for Cosmos DB Module
-
-# Basic Configuration Variables
-variable "business_divsion" {
-  description = "Business Division in the large organization this Infrastructure belongs"
+variable "resource_location" {
   type        = string
-  default     = ""
-}
-
-variable "environment" {
-  description = "Environment Variable used as a prefix"
-  type        = string
-  default     = "dev"
-}
-
-variable "owners" {
-  description = "Project owners email address/AAD Group name"
-  type        = string
-  default     = ""
-}
-
-variable "application_name" {
-  description = "Name of the application"
-  type        = string
+  description = "Region for the backup vault"
+  default     = "uaenorth"
 }
 
 variable "resource_group_name" {
-  description = "Resource group name for Cosmos DB."
   type        = string
+  description = "The resource group for the backup vault"
 }
 
-variable "location" {
-  description = "Azure region for Cosmos DB."
+variable "application_name" {
   type        = string
+  description = "The application that requires this resource"
 }
 
-variable "cosmosdb_account_name" {
-  description = "Name of the Cosmos DB account."
+variable "environment" {
   type        = string
-}
-
-variable "kind" {
-  description = "The kind of CosmosDB to create (e.g., MongoDB, GlobalDocumentDB)."
-  type        = string
-  default     = "GlobalDocumentDB"
+  description = "Environment to provision resources"
+  validation {
+    condition     = can(regex("^(?:dev|qa|sit|uat|preprod|prod)$", var.environment))
+    error_message = "Allowed values for environment: dev,qa,uat,sit,preprod,prod"
+  }
 }
 
 variable "offer_type" {
-  description = "The offer type for Cosmos DB."
   type        = string
+  description = "Specifies the Offer Type to use for this CosmosDB Account - currently this can only be set to Standard."
   default     = "Standard"
 }
 
-# Advanced Configuration
-variable "enable_automatic_failover" {
-  description = "Enable automatic failover for this Cosmos DB account."
-  type        = bool
-  default     = false
+variable "kind" {
+  type        = string
+  description = "Specifies the Kind of CosmosDB to create - possible values are `GlobalDocumentDB` and `MongoDB`."
+  default     = "MongoDB"
 }
 
-variable "enable_multiple_write_locations" {
-  description = "Enable multiple write locations for this Cosmos DB account."
-  type        = bool
-  default     = false
-}
-
-variable "enable_virtual_network_filter" {
-  description = "Enable virtual network filtering for this Cosmos DB account."
-  type        = bool
-  default     = false
-}
-
-variable "public_network_access_enabled" {
-  description = "Whether or not public network traffic is allowed for this CosmosDB account."
+variable "free_tier_enabled" {
+  description = "Enable the option to opt-in for the free database account within subscription."
   type        = bool
   default     = false
 }
 
 variable "analytical_storage_enabled" {
-  description = "Enable Analytical Storage option for this Cosmos DB account."
+  description = "Enable Analytical Storage option for this Cosmos DB account. Defaults to `false`. Changing this forces a new resource to be created."
   type        = bool
   default     = false
 }
 
-variable "analytical_storage_schema_type" {
-  description = "The schema type of the Analytical Storage for this Cosmos DB account."
+variable "analytical_storage_type" {
+  description = "The schema type of the Analytical Storage for this Cosmos DB account. Possible values are `FullFidelity` and `WellDefined`."
   type        = string
-  default     = "WellDefined"
+  default     = null
+
+  validation {
+    condition     = try(contains(["FullFidelity", "WellDefined"], var.analytical_storage_type), true)
+    error_message = "The `analytical_storage_type` value must be valid. Possible values are `FullFidelity` and `WellDefined`."
+  }
 }
 
-# Consistency Policy
+variable "mongo_server_version" {
+  description = "The Server Version of a MongoDB account. See possible values https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_account#mongo_server_version"
+  type        = string
+  default     = "4.2"
+}
+
 variable "consistency_policy" {
-  description = "Consistency policy for the CosmosDB account."
   type = object({
     consistency_level       = string
     max_interval_in_seconds = optional(number)
     max_staleness_prefix    = optional(number)
   })
+  description = "Consistency levels in Azure Cosmos DB"
   default = {
-    consistency_level = "Session"
+    consistency_level = "BoundedStaleness"
   }
 }
 
-# Geo Location
-variable "geo_location" {
-  description = "List of geo locations for the CosmosDB account."
-  type = list(object({
-    location          = string
-    failover_priority = number
-    zone_redundant    = optional(bool)
-  }))
-  default = []
+variable "failover_locations" {
+  type = list(object(
+    {
+      location          = string
+      failover_priority = number
+      zone_redundant    = optional(bool)
+    }
+  ))
+  description = "The name of the Azure region to host replicated data and their priority."
+  default     = null
 }
 
-# Capabilities
 variable "capabilities" {
-  description = "List of capabilities to enable for this CosmosDB account."
   type        = list(string)
-  default     = ["EnableServerless"]
+  description = "Configures the capabilities to enable for this Cosmos DB account. Possible values are `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`, `EnableMongo`, `EnableTable`, `EnableServerless`, `MongoDBv3.4` and `mongoEnableDocLevelTTL`."
+  default     = ["EnableMongo"]
 }
 
-# Networking
-variable "virtual_network_rules" {
-  description = "List of virtual network rules for the CosmosDB account."
-  type = list(object({
-    subnet_id                               = string
-    ignore_missing_vnet_service_endpoint    = optional(bool)
-  }))
-  default = null
+variable "allowed_cidrs" {
+  type        = set(string)
+  description = "CosmosDB Firewall Support: This value specifies the set of IP addresses or IP address ranges in CIDR form to be included as the allowed list of client IP's for a given database account."
+  default     = []
 }
 
-# Backup Configuration
-variable "backup" {
-  description = "Backup configuration for the CosmosDB account."
-  type = object({
-    type                = string
-    tier                = optional(string)
-    interval_in_minutes = optional(number)
-    retention_in_hours  = optional(number)
-    storage_redundancy  = optional(string)
-  })
-  default = null
-}
-
-# CORS Configuration
-variable "cors_rule" {
-  description = "CORS rule for the CosmosDB account."
-  type = object({
-    allowed_headers    = list(string)
-    allowed_methods    = list(string)
-    allowed_origins    = list(string)
-    exposed_headers    = list(string)
-    max_age_in_seconds = number
-  })
-  default = null
-}
-
-# Identity Configuration
-variable "identity" {
-  description = "Identity configuration for the CosmosDB account."
-  type = object({
-    type         = string
-    identity_ids = optional(list(string))
-  })
-  default = null
-}
-
-# SQL Databases
-variable "sql_databases" {
-  description = "List of SQL databases to create."
-  type = list(object({
-    name = string
-    autoscale_settings = optional(object({
-      max_throughput = number
-    }))
-    throughput = optional(number)
-  }))
-  default = []
-}
-
-# SQL Containers
-variable "sql_containers" {
-  description = "List of SQL containers to create."
-  type = list(object({
-    name               = string
-    database_name      = string
-    partition_key_path = string
-    autoscale_settings = optional(object({
-      max_throughput = number
-    }))
-    throughput = optional(number)
-    unique_keys = optional(list(object({
-      paths = list(string)
-    })))
-    indexing_policy = optional(object({
-      indexing_mode    = string
-      included_paths   = optional(list(string))
-      excluded_paths   = optional(list(string))
-      composite_indexes = optional(list(object({
-        indexes = list(object({
-          path  = string
-          order = string
-        }))
-      })))
-      spatial_indexes = optional(list(object({
-        path  = string
-        types = list(string)
-      })))
-    }))
-  }))
-  default = []
-}
-
-# Private Endpoint Configuration
-variable "enable_private_endpoint" {
-  description = "Enable private endpoint for Cosmos DB."
+variable "public_network_access_enabled" {
+  description = "Whether or not public network access is allowed for this CosmosDB account."
   type        = bool
   default     = false
 }
 
-variable "privatelink_subnet" {
-  description = "Subnet configuration for private endpoint."
+variable "is_virtual_network_filter_enabled" {
+  description = "Enables virtual network filtering for this Cosmos DB account"
+  type        = bool
+  default     = false
+}
+
+variable "network_acl_bypass_for_azure_services" {
+  description = "If azure services can bypass ACLs."
+  type        = bool
+  default     = false
+}
+
+variable "network_acl_bypass_ids" {
+  description = "The list of resource Ids for Network Acl Bypass for this Cosmos DB account."
+  type        = list(string)
+  default     = null
+}
+
+variable "virtual_network_rule" {
+  description = "Specifies a virtual_network_rules resource used to define which subnets are allowed to access this CosmosDB account"
+  type = list(object({
+    id                                   = string,
+    ignore_missing_vnet_service_endpoint = bool
+  }))
+  default = null
+}
+
+variable "backup" {
+  description = "Backup block with type (Continuous / Periodic), interval_in_minutes, retention_in_hours keys and storage_redundancy"
   type = object({
-    name                 = string
-    vnet_name           = string
-    resource_group      = string
+    type                = string
+    interval_in_minutes = number
+    retention_in_hours  = number
+    storage_redundancy  = string
   })
   default = null
 }
 
-variable "private_dns_zone_ids" {
-  description = "List of private DNS zone IDs for private endpoint."
-  type        = list(string)
-  default     = []
+variable "managed_identity" {
+  type        = bool
+  description = "Specifies the type of Managed Service Identity that should be configured on this Cosmos Account. Possible value is only SystemAssigned. Defaults to false."
+  default     = true
 }
 
-# Tags
+variable "identity_ids" {
+  type        = string
+  description = "The identtiy ids to be attached to the cosmos db"
+  default     = null
+
+}
+
 variable "tags" {
-  description = "A map of tags to assign to the resource."
+  description = "A map of tags to add to all resources"
   type        = map(string)
+}
+
+variable "databases" {
+  description = "MongoDB Databases"
+  type = map(object({
+    description    = optional(string)
+    throughput     = optional(number)
+    max_throughput = optional(number)
+    collections = list(object({
+      name           = string
+      shard_key      = string
+      throughput     = optional(number)
+      max_throughput = optional(number)
+    }))
+  }))
+  default = {}
+}
+
+variable "diagnostic_settings" {
+  type = map(object({
+    name                                     = optional(string, null)
+    log_categories                           = optional(set(string), [])
+    log_groups                               = optional(set(string), ["allLogs"])
+    metric_categories                        = optional(set(string), ["Requests"])
+    log_analytics_destination_type           = optional(string, "Dedicated")
+    workspace_resource_id                    = optional(string, null)
+    storage_account_resource_id              = optional(string, null)
+    event_hub_authorization_rule_resource_id = optional(string, null)
+    event_hub_name                           = optional(string, null)
+    marketplace_partner_resource_id          = optional(string, null)
+  }))
   default     = {}
+  description = <<DESCRIPTION
+A map of diagnostic settings to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+
+- `name` - (Optional) The name of the diagnostic setting. One will be generated if not set, however this will not be unique if you want to create multiple diagnostic setting resources.
+- `log_categories` - (Optional) A set of log categories to send to the log analytics workspace. Defaults to `[]`.
+- `log_groups` - (Optional) A set of log groups to send to the log analytics workspace. Defaults to `["allLogs"]`.
+- `metric_categories` - (Optional) A set of metric categories to send to the log analytics workspace. Defaults to `["AllMetrics"]`.
+- `log_analytics_destination_type` - (Optional) The destination type for the diagnostic setting. Possible values are `Dedicated` and `AzureDiagnostics`. Defaults to `Dedicated`.
+- `workspace_resource_id` - (Optional) The resource ID of the log analytics workspace to send logs and metrics to.
+- `storage_account_resource_id` - (Optional) The resource ID of the storage account to send logs and metrics to.
+- `event_hub_authorization_rule_resource_id` - (Optional) The resource ID of the event hub authorization rule to send logs and metrics to.
+- `event_hub_name` - (Optional) The name of the event hub. If none is specified, the default event hub will be selected.
+- `marketplace_partner_resource_id` - (Optional) The full ARM resource ID of the Marketplace resource to which you would like to send Diagnostic LogsLogs.
+DESCRIPTION
+  nullable    = false
+
+  validation {
+    condition     = alltrue([for _, v in var.diagnostic_settings : contains(["Dedicated", "AzureDiagnostics"], v.log_analytics_destination_type)])
+    error_message = "Log analytics destination type must be one of: 'Dedicated', 'AzureDiagnostics'."
+  }
+  validation {
+    condition = alltrue(
+      [
+        for _, v in var.diagnostic_settings :
+        v.workspace_resource_id != null || v.storage_account_resource_id != null || v.event_hub_authorization_rule_resource_id != null || v.marketplace_partner_resource_id != null
+      ]
+    )
+    error_message = "At least one of `workspace_resource_id`, `storage_account_resource_id`, `marketplace_partner_resource_id`, or `event_hub_authorization_rule_resource_id`, must be set."
+  }
+}
+
+variable "privatelink_subnet" {
+  type = object({
+    name           = string
+    vnet_name      = string
+    resource_group = string
+  })
+  description = "Subnet where the private link is required."
+  default     = null
+}
+
+variable "private_dns_zone_id" {
+  type        = string
+  description = "ID of the private dns zone for private link"
 }

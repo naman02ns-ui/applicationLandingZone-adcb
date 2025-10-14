@@ -39,10 +39,13 @@ variable "subnet" {
 
 variable "workload_profile" {
   description = "Workload Profile for container app environment"
-  type = object({
+  type = list(object({
     name                  = string
     workload_profile_type = string
-  })
+    maximum_count         = optional(number)
+    minimum_count         = optional(number)
+  }))
+  default = []
 }
 
 variable "log_analytics_workspace_id" {

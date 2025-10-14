@@ -1,5 +1,5 @@
 module "cosmosdb" {
-  source              = "../azure-terraform/modules/cosmosdb"
+  source              = "../adcb-iac/cosmosdb"
   application_name    = var.application_name
   environment         = var.environment
   resource_group_name = module.resource_group.rg_name

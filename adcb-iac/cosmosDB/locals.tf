@@ -1,21 +1,14 @@
 locals {
-  owners      = var.owners
-  project     = var.business_divsion
-  environment = var.environment
-  location    = lower(var.location)
+  location = lower(var.resource_location)
+  tags      = var.tags
   location_shortcode_map = {
     "uaenorth"   = "uan"
     "uaecentral" = "uac"
   }
-  location_shortcode = lookup(local.location_shortcode_map, var.location, substr(var.location, 0, 4))
-  common_tags = {
-    owners      = local.owners
-    project     = local.project
-    environment = local.environment
-    CreatedBy   = "Terraform"
-    Application = var.application_name
-    Environment = var.environment
-    Purpose     = "Knowledge Management Data"
-    ResourceType = "Cosmos DB"
-  }
+  location_shortcode = lookup(local.location_shortcode_map, var.resource_location, substr(local.location, 0, 4))
+  failover_locations = [{
+    location          = var.resource_location
+    failover_priority = 0
+    zone_redundant    = false
+  }]
 }

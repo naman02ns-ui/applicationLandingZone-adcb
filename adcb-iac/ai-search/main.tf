@@ -1,5 +1,5 @@
 resource "azurerm_search_service" "search_service" {
-  name                = var.search_service_name
+  name                = format("aisearch-%s-%s-%s", var.application_name, var.environment, local.location_shortcode)
   resource_group_name = var.resource_group_name
   location            = var.location
   sku                 = var.sku
@@ -36,7 +36,7 @@ resource "azurerm_search_service" "search_service" {
 resource "azurerm_monitor_diagnostic_setting" "ai_search_diag" {
   count              = var.ai_monitoring.enabled ? 1 : 0
   name               = "ai-search-diag"
-  target_resource_id = var.search_service_id
+  target_resource_id = azurerm_search_service.search_service.id
 
   log_analytics_workspace_id = data.azurerm_log_analytics_workspace.workspace[0].id
 

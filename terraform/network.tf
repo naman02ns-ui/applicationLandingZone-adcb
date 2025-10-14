@@ -1,5 +1,5 @@
 module "base-infra" {
-  source = "../azure-terraform/modules/base-infrastructure"
+  source = "../adcb-iac/base-infrastructure"
 
   resource_group_name = module.resource_group.rg_name
   app_name            = var.application_name

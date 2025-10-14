@@ -3,7 +3,7 @@
 # =============================================================================
 
 module "function_apps" {
-  source = "../app-service/app-function"
+  source = "../adcb-iac/app-service/app-function"
 
   for_each = var.function_apps
 

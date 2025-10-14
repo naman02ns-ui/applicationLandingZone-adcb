@@ -1,6 +1,6 @@
 
 module "azure_key_vault" {
-  source                      = "../azure-terraform/modules/key-vault"
+  source                      = "../adcb-iac/kv"
   resource_group_name         = module.resource_group.rg_name
   environment                 = var.environment
   application_name            = var.application_name
@@ -16,7 +16,7 @@ module "azure_key_vault" {
   }
   private_dns_zone_id = data.azurerm_private_dns_zone.kv_dns_zone.id
   tags                = local.tags
-} 
+}
 
 /*
 #creates a vnl between the kv private dns zone and ai subs
@@ -26,5 +26,5 @@ resource "azurerm_private_dns_zone_virtual_network_link" "keyvault-vnl" {
   resource_group_name   = "rg-connectivity-dns-uaenorth-01"
   private_dns_zone_name = data.azurerm_private_dns_zone.kv_dns_zone.name
   virtual_network_id    = module.base-infra.vnet_id
-} 
+}
 */

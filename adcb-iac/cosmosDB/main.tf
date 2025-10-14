@@ -1,19 +1,38 @@
-# Random identifier module for unique naming
+locals {
+  collections = flatten([
+    for db_key, db_details in var.databases : [
+      for col in db_details.collections : {
+        name           = col.name
+        database       = db_key
+        shard_key      = col.shard_key
+        throughput     = lookup(col, "throughput", null)
+        max_throughput = lookup(col, "max_throughput", null)
+      }
+    ]
+  ])
+}
+
 module "res-id" {
   source = "../utility/random-identifier"
 }
 
-# Cosmos DB Account
-resource "azurerm_cosmosdb_account" "this" {
-  name                              = "${var.cosmosdb_account_name}-${local.location_shortcode}-${module.res-id.result}"
-  resource_group_name               = var.resource_group_name
-  location                          = local.location
-  offer_type                        = var.offer_type
-  kind                              = var.kind
-  automatic_failover_enabled        = var.enable_automatic_failover
-  multiple_write_locations_enabled  = var.enable_multiple_write_locations
-  is_virtual_network_filter_enabled = var.enable_virtual_network_filter
-  public_network_access_enabled     = var.public_network_access_enabled
+resource "azurerm_cosmosdb_account" "cosmosdb_account" {
+  name                       = format("cosmos-%s-%s-%s-%s", var.application_name, var.environment, local.location_shortcode, module.res-id.result)
+  location                   = local.location
+  resource_group_name        = var.resource_group_name
+  offer_type                 = var.offer_type
+  kind                       = var.kind
+  mongo_server_version       = var.kind == "MongoDB" ? var.mongo_server_version : null
+  free_tier_enabled          = var.free_tier_enabled
+  automatic_failover_enabled = true
+  analytical_storage_enabled = var.analytical_storage_enabled
+
+  dynamic "analytical_storage" {
+    for_each = var.analytical_storage_type != null ? ["enabled"] : []
+    content {
+      schema_type = var.analytical_storage_type
+    }
+  }
 
   consistency_policy {
     consistency_level       = var.consistency_policy.consistency_level
@@ -21,192 +40,115 @@ resource "azurerm_cosmosdb_account" "this" {
     max_staleness_prefix    = var.consistency_policy.max_staleness_prefix
   }
 
+
+  ip_range_filter = length(var.allowed_cidrs) > 0 ? var.allowed_cidrs : null
+
+
+  public_network_access_enabled         = var.public_network_access_enabled
+  is_virtual_network_filter_enabled     = var.is_virtual_network_filter_enabled
+  network_acl_bypass_for_azure_services = var.network_acl_bypass_for_azure_services
+  network_acl_bypass_ids                = var.network_acl_bypass_ids
+
+  dynamic "virtual_network_rule" {
+    for_each = var.virtual_network_rule != null ? toset(var.virtual_network_rule) : []
+    content {
+      id                                   = virtual_network_rule.value.id
+      ignore_missing_vnet_service_endpoint = virtual_network_rule.value.ignore_missing_vnet_service_endpoint
+    }
+  }
+
   dynamic "geo_location" {
-    for_each = length(var.geo_location) > 0 ? var.geo_location : [
-      {
-        location          = var.location
-        failover_priority = 0
-        zone_redundant    = false
-      }
-    ]
+    for_each = var.failover_locations != null ? var.failover_locations : local.failover_locations
     content {
       location          = geo_location.value.location
       failover_priority = geo_location.value.failover_priority
-      zone_redundant    = lookup(geo_location.value, "zone_redundant", false)
+      zone_redundant    = geo_location.value.zone_redundant
     }
   }
 
   dynamic "capabilities" {
-    for_each = var.capabilities
+    for_each = toset(var.capabilities)
     content {
-      name = capabilities.value
-    }
-  }
-
-  dynamic "virtual_network_rule" {
-    for_each = var.virtual_network_rules != null ? var.virtual_network_rules : []
-    content {
-      id                                   = virtual_network_rule.value.subnet_id
-      ignore_missing_vnet_service_endpoint = lookup(virtual_network_rule.value, "ignore_missing_vnet_service_endpoint", false)
+      name = capabilities.key
     }
   }
 
   dynamic "backup" {
-    for_each = var.backup != null ? [var.backup] : []
+    for_each = var.backup != null ? ["enabled"] : []
     content {
-      type                = backup.value.type
-      tier                = lookup(backup.value, "tier", null)
-      interval_in_minutes = lookup(backup.value, "interval_in_minutes", null)
-      retention_in_hours  = lookup(backup.value, "retention_in_hours", null)
-      storage_redundancy  = lookup(backup.value, "storage_redundancy", null)
-    }
-  }
-
-  dynamic "cors_rule" {
-    for_each = var.cors_rule != null ? [var.cors_rule] : []
-    content {
-      allowed_headers    = cors_rule.value.allowed_headers
-      allowed_methods    = cors_rule.value.allowed_methods
-      allowed_origins    = cors_rule.value.allowed_origins
-      exposed_headers    = cors_rule.value.exposed_headers
-      max_age_in_seconds = cors_rule.value.max_age_in_seconds
+      type                = lookup(var.backup, "type", null)
+      interval_in_minutes = lookup(var.backup, "interval_in_minutes", null)
+      retention_in_hours  = lookup(var.backup, "retention_in_hours", null)
+      storage_redundancy  = lookup(var.backup, "storage_redundancy", null)
     }
   }
 
   dynamic "identity" {
-    for_each = var.identity != null ? [var.identity] : []
+    for_each = var.managed_identity ? [1] : [0]
     content {
-      type         = identity.value.type
-      identity_ids = lookup(identity.value, "identity_ids", null)
+      type         = "SystemAssigned, UserAssigned"
+      identity_ids = [var.identity_ids]
     }
   }
 
-  dynamic "analytical_storage" {
-    for_each = var.analytical_storage_enabled ? [1] : []
-    content {
-      schema_type = var.analytical_storage_schema_type
-    }
+  tags                         = local.tags
+}
+
+resource "azurerm_cosmosdb_mongo_database" "mongo_database" {
+  for_each            = var.databases
+  name                = each.key
+  resource_group_name = var.resource_group_name
+  account_name        = azurerm_cosmosdb_account.cosmosdb_account.name
+  throughput          = each.value.throughput
+}
+
+resource "azurerm_cosmosdb_mongo_collection" "mongo_collection" {
+  for_each = {
+    for col in local.collections : col.name => col
   }
 
-  tags = merge(local.common_tags, var.tags)
-
-  lifecycle {
-    ignore_changes = [
-      tags
-    ]
+  name                = each.value.name
+  resource_group_name = var.resource_group_name
+  account_name        = azurerm_cosmosdb_account.cosmosdb_account.name
+  database_name       = each.value.database
+  shard_key           = each.value.shard_key
+  throughput          = each.value.throughput
+  index {
+    keys   = ["_id"]
+    unique = true
   }
 }
 
-# Private Endpoint for Cosmos DB
-resource "azurerm_private_endpoint" "cosmosdb_pe" {
-  count               = var.enable_private_endpoint && var.privatelink_subnet != null ? 1 : 0
-  name                = "pe-cosmosdb-${var.application_name}-${var.environment}-${local.location_shortcode}"
-  location            = local.location
-  resource_group_name = var.resource_group_name
-  subnet_id           = data.azurerm_subnet.privatelink_subnet[0].id
+resource "azurerm_monitor_diagnostic_setting" "this" {
+  for_each = var.diagnostic_settings
 
-  private_service_connection {
-    name                           = "psc-cosmosdb-${var.application_name}-${var.environment}-${local.location_shortcode}"
-    private_connection_resource_id = azurerm_cosmosdb_account.this.id
-    is_manual_connection           = false
-    subresource_names              = ["Sql"]
-  }
+  name                           = each.value.name != null ? each.value.name : "diag-cosmon-${var.environment}"
+  target_resource_id             = azurerm_cosmosdb_account.cosmosdb_account.id
+  eventhub_authorization_rule_id = each.value.event_hub_authorization_rule_resource_id
+  eventhub_name                  = each.value.event_hub_name
+  log_analytics_destination_type = each.value.log_analytics_destination_type
+  log_analytics_workspace_id     = each.value.workspace_resource_id
+  partner_solution_id            = each.value.marketplace_partner_resource_id
+  storage_account_id             = each.value.storage_account_resource_id
 
-  dynamic "private_dns_zone_group" {
-    for_each = length(var.private_dns_zone_ids) > 0 ? [1] : []
+  dynamic "enabled_log" {
+    for_each = each.value.log_categories
     content {
-      name                 = "pdz-cosmosdb-${var.application_name}-${var.environment}-${local.location_shortcode}"
-      private_dns_zone_ids = var.private_dns_zone_ids
+      category = enabled_log.value
     }
   }
 
-  tags = merge(local.common_tags, var.tags)
-}
-
-# Cosmos DB SQL Database
-resource "azurerm_cosmosdb_sql_database" "database" {
-  count               = length(var.sql_databases)
-  name                = var.sql_databases[count.index].name
-  resource_group_name = var.resource_group_name
-  account_name        = azurerm_cosmosdb_account.this.name
-
-  dynamic "autoscale_settings" {
-    for_each = lookup(var.sql_databases[count.index], "autoscale_settings", null) != null ? [var.sql_databases[count.index].autoscale_settings] : []
+  dynamic "enabled_log" {
+    for_each = each.value.log_groups
     content {
-      max_throughput = autoscale_settings.value.max_throughput
+      category_group = enabled_log.value
     }
   }
 
-  throughput = lookup(var.sql_databases[count.index], "throughput", null)
-}
-
-# Cosmos DB SQL Containers
-resource "azurerm_cosmosdb_sql_container" "container" {
-  count               = length(var.sql_containers)
-  name                = var.sql_containers[count.index].name
-  resource_group_name = var.resource_group_name
-  account_name        = azurerm_cosmosdb_account.this.name
-  database_name       = var.sql_containers[count.index].database_name
-
-  partition_key_paths = [var.sql_containers[count.index].partition_key_path]
-
-  dynamic "autoscale_settings" {
-    for_each = lookup(var.sql_containers[count.index], "autoscale_settings", null) != null ? [var.sql_containers[count.index].autoscale_settings] : []
+  dynamic "metric" {
+    for_each = each.value.metric_categories
     content {
-      max_throughput = autoscale_settings.value.max_throughput
+      category = metric.value
     }
   }
-
-  throughput = lookup(var.sql_containers[count.index], "throughput", null)
-
-  dynamic "unique_key" {
-    for_each = lookup(var.sql_containers[count.index], "unique_keys", null) != null ? var.sql_containers[count.index].unique_keys : []
-    content {
-      paths = unique_key.value.paths
-    }
-  }
-
-  dynamic "indexing_policy" {
-    for_each = lookup(var.sql_containers[count.index], "indexing_policy", null) != null ? [var.sql_containers[count.index].indexing_policy] : []
-    content {
-      indexing_mode = indexing_policy.value.indexing_mode
-
-      dynamic "included_path" {
-        for_each = lookup(indexing_policy.value, "included_paths", [])
-        content {
-          path = included_path.value
-        }
-      }
-
-      dynamic "excluded_path" {
-        for_each = lookup(indexing_policy.value, "excluded_paths", [])
-        content {
-          path = excluded_path.value
-        }
-      }
-
-      dynamic "composite_index" {
-        for_each = lookup(indexing_policy.value, "composite_indexes", [])
-        content {
-          dynamic "index" {
-            for_each = composite_index.value.indexes
-            content {
-              path  = index.value.path
-              order = index.value.order
-            }
-          }
-        }
-      }
-
-      dynamic "spatial_index" {
-        for_each = lookup(indexing_policy.value, "spatial_indexes", [])
-        content {
-          path = spatial_index.value.path
-          types = spatial_index.value.types
-        }
-      }
-    }
-  }
-
-  depends_on = [azurerm_cosmosdb_sql_database.database]
 }

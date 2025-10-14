@@ -1,5 +1,5 @@
 module "storage" {
-  source                        = "../azure-terraform/modules/storage"
+  source                        = "../adcb-iac/storage"
   storage_account_name          = "sa-${var.application_name}-${var.environment}"
   resource_group                = module.resource_group.rg_name
   application_name              = var.application_name
