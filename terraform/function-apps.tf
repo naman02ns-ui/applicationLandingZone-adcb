@@ -11,9 +11,9 @@ module "function_apps" {
   resource_group_name                       = each.value.resource_group_name
   application_name                          = each.value.application_name
   environment                               = each.value.environment
-  service_plan_sku                          = each.value.service_plan_sku
-  max_elastic_worker_count                  = each.value.max_elastic_worker_count
-  existing_service_plan                     = each.value.existing_service_plan
+  service_plan_sku                          = "EP1"  # This will be overridden by existing_service_plan
+  max_elastic_worker_count                  = 20
+  existing_service_plan                     = module.app_service_plans[each.value.app_service_plan_name].id
   function_apps                             = each.value.function_apps
   app_function_subnet                       = each.value.app_function_subnet
   privatelink_subnet                        = each.value.privatelink_subnet
@@ -37,11 +37,16 @@ module "function_apps" {
   create_fileshare                          = each.value.create_fileshare
   file_shares                               = each.value.file_shares
   tags                                      = local.tags
+
+  depends_on = [module.app_service_plans]
 }
 
 # Grant Function App's User-Assigned Managed Identity access to Key Vault
 resource "azurerm_role_assignment" "function_app_kv_secrets_user" {
-  for_each = var.function_apps
+  for_each = {
+    for fa_key, fa_config in var.function_apps : fa_key => fa_config
+    if module.function_apps[fa_key].user_assigned_identity_principal_id != null
+  }
 
   scope                = module.azure_key_vault.id
   role_definition_name = "Key Vault Secrets User"
@@ -61,7 +66,7 @@ resource "azurerm_role_assignment" "function_app_acr_pull" {
           fa_key = fa_key
           acr_id  = module.container_registries[acr_key].acr_id
           principal_id = module.function_apps[fa_key].user_assigned_identity_principal_id
-        }
+        } if module.function_apps[fa_key].user_assigned_identity_principal_id != null
       ]
     ]) : "${combo.acr_key}-${combo.fa_key}" => combo
   }
@@ -80,7 +85,7 @@ resource "azurerm_role_assignment" "function_app_cosmosdb_contributor" {
     for fa_key, fa_config in var.function_apps : fa_key => {
       scope        = "/subscriptions/${var.management_sub_id}/resourceGroups/${module.resource_group.rg_name}/providers/Microsoft.DocumentDB/databaseAccounts/*"
       principal_id = module.function_apps[fa_key].user_assigned_identity_principal_id
-    }
+    } if module.function_apps[fa_key].user_assigned_identity_principal_id != null
   }
 
   scope                = each.value.scope
@@ -97,7 +102,7 @@ resource "azurerm_role_assignment" "function_app_storage_blob_contributor" {
     for fa_key, fa_config in var.function_apps : fa_key => {
       scope        = "/subscriptions/${var.management_sub_id}/resourceGroups/${module.resource_group.rg_name}/providers/Microsoft.Storage/storageAccounts/*"
       principal_id = module.function_apps[fa_key].user_assigned_identity_principal_id
-    }
+    } if module.function_apps[fa_key].user_assigned_identity_principal_id != null
   }
 
   scope                = each.value.scope

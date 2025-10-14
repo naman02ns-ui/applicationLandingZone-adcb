@@ -13,7 +13,7 @@ module "logic_apps" {
   environment                         = each.value.environment
   storage_account_name               = each.value.storage_account_name
   service_plan_name                   = each.value.service_plan_name
-  service_plan_sku                    = each.value.service_plan_sku
+  existing_service_plan              = module.app_service_plans[each.value.app_service_plan_name].id
   user_assigned_identity_ids          = each.value.user_assigned_identity_ids
   privatelink_subnet                  = each.value.privatelink_subnet
   private_dns_zone_id                = each.value.private_dns_zone_id
@@ -27,15 +27,19 @@ module "logic_apps" {
   definistion_file_path              = each.value.definistion_file_path
   file_share_private_dns_zone_id     = each.value.file_share_private_dns_zone_id
   create_fileshare                   = each.value.create_fileshare
-  existing_service_plan              = each.value.existing_service_plan
   uai_required                       = each.value.uai_required
   logic_apps                         = { for k, v in each.value.logic_apps : k => v }
   tags                               = local.tags
+
+  depends_on = [module.app_service_plans]
 }
 
 # Grant Logic App's User-Assigned Managed Identity access to Key Vault
 resource "azurerm_role_assignment" "logic_app_kv_secrets_user" {
-  for_each = var.logic_apps
+  for_each = {
+    for la_key, la_config in var.logic_apps : la_key => la_config
+    if module.logic_apps[la_key].user_assigned_identity_principal_id != null
+  }
 
   scope                = module.azure_key_vault.id
   role_definition_name = "Key Vault Secrets User"
@@ -51,7 +55,7 @@ resource "azurerm_role_assignment" "logic_app_cosmosdb_contributor" {
     for la_key, la_config in var.logic_apps : la_key => {
       scope        = "/subscriptions/${var.management_sub_id}/resourceGroups/${module.resource_group.rg_name}/providers/Microsoft.DocumentDB/databaseAccounts/*"
       principal_id = module.logic_apps[la_key].user_assigned_identity_principal_id
-    }
+    } if module.logic_apps[la_key].user_assigned_identity_principal_id != null
   }
 
   scope                = each.value.scope
@@ -68,7 +72,7 @@ resource "azurerm_role_assignment" "logic_app_storage_blob_contributor" {
     for la_key, la_config in var.logic_apps : la_key => {
       scope        = "/subscriptions/${var.management_sub_id}/resourceGroups/${module.resource_group.rg_name}/providers/Microsoft.Storage/storageAccounts/*"
       principal_id = module.logic_apps[la_key].user_assigned_identity_principal_id
-    }
+    } if module.logic_apps[la_key].user_assigned_identity_principal_id != null
   }
 
   scope                = each.value.scope

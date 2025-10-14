@@ -126,6 +126,34 @@ databases = {
 
 containername = "aifoundry"
 
+#--------------App Service Plans--------------------#
+
+app_service_plans = {
+  "aiapps-function-asp" = {
+    resource_location        = "uaenorth"
+    resource_group_name     = "rg-aiapps-nonprod-uaenorth-001"
+    application_name        = "aiapps"
+    environment             = "nonprod"
+    service_plan_sku        = "EP1"
+    max_elastic_worker_count = 20
+    worker_count            = null
+    os_type                 = "Linux"
+    diagnostic_settings     = {}
+  }
+
+  "aiapps-logic-asp" = {
+    resource_location        = "uaenorth"
+    resource_group_name     = "rg-aiapps-nonprod-uaenorth-001"
+    application_name        = "aiapps"
+    environment             = "nonprod"
+    service_plan_sku        = "EP1"
+    max_elastic_worker_count = 15
+    worker_count            = null
+    os_type                 = "Linux"
+    diagnostic_settings     = {}
+  }
+}
+
 #--------------Container Registry--------------------#
 
 container_registries = {
@@ -270,13 +298,12 @@ function_apps = {
     resource_group_name                       = "rg-aiapps-nonprod-uaenorth-001"
     application_name                          = "aiapps"
     environment                               = "nonprod"
-    service_plan_sku                          = "EP1"
-    max_elastic_worker_count                  = 20
+    app_service_plan_name                     = "aiapps-function-asp"
     existing_service_plan                     = null
     function_apps = {
       "func-data-processor" = {
         function_app_version = "~4"
-        python_version      = "3.11"
+        python_version      = "3.12"
         use_32_bit_worker   = false
       }
     }
@@ -320,8 +347,7 @@ function_apps = {
     resource_group_name                       = "rg-aiapps-nonprod-uaenorth-001"
     application_name                          = "aiapps"
     environment                               = "nonprod"
-    service_plan_sku                          = "EP2"
-    max_elastic_worker_count                  = 30
+    app_service_plan_name                     = "aiapps-function-asp"
     existing_service_plan                     = null
     function_apps = {
       "func-ml-inference" = {
@@ -370,8 +396,7 @@ function_apps = {
     resource_group_name                       = "rg-aiapps-nonprod-uaenorth-001"
     application_name                          = "aiapps"
     environment                               = "nonprod"
-    service_plan_sku                          = "EP1"
-    max_elastic_worker_count                  = 15
+    app_service_plan_name                     = "aiapps-function-asp"
     existing_service_plan                     = null
     function_apps = {
       "func-integration-handler" = {
@@ -425,8 +450,8 @@ logic_apps = {
     application_name                    = "aiapps"
     environment                         = "nonprod"
     storage_account_name               = "staiappsnonproduaen001"
+    app_service_plan_name              = "aiapps-logic-asp"
     service_plan_name                   = "asp-aiapps-workflow-nonprod-001"
-    service_plan_sku                    = "WS1"
     user_assigned_identity_ids          = ["/subscriptions/eed58c8e-f08c-4839-9bfe-469f4705d062/resourceGroups/rg-aiapps-nonprod-uaenorth-001/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-aiapps-workflow-nonprod-001"]
     privatelink_subnet = {
       name           = "snet-private-endpoint-uaenorth-001"

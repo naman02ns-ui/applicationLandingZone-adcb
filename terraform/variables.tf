@@ -139,16 +139,83 @@ variable "sa_dns_zone" {
   default = "privatelink.blob.core.windows.net"
 }
 
+############################## App Service Plan vars ####################
 
+variable "app_service_plans" {
+  description = "Map of App Service Plans to create for Function Apps and Logic Apps"
+  type = map(object({
+    resource_location        = optional(string, "uaenorth")
+    resource_group_name     = string
+    application_name        = string
+    environment             = string
+    service_plan_sku        = optional(string, "EP1")
+    max_elastic_worker_count = optional(number, 20)
+    worker_count            = optional(number)
+    os_type                 = optional(string, "Linux")
+    diagnostic_settings     = optional(map(object({
+      name                                     = optional(string)
+      metric_categories                        = optional(set(string), ["AllMetrics"])
+      log_analytics_destination_type           = optional(string, "Dedicated")
+      workspace_resource_id                    = optional(string)
+      storage_account_resource_id              = optional(string)
+      event_hub_authorization_rule_resource_id = optional(string)
+      event_hub_name                           = optional(string)
+      marketplace_partner_resource_id          = optional(string)
+    })), {})
+  }))
+  default = {}
+}
 
 ############################## Function Apps vars ####################
 
 variable "function_apps" {
-  description = "Map of function apps to create"
+  description = "Map of function apps to create with comprehensive configuration"
   type = map(object({
-    name            = string
-    env_vars        = map(string)
-    file_share_name = string
+    resource_location                          = optional(string, "uaenorth")
+    resource_group_name                       = string
+    application_name                          = string
+    environment                               = string
+    app_service_plan_name                     = string
+    existing_service_plan                     = optional(string)
+    function_apps                             = map(object({
+      function_app_version = optional(string, "~4")
+      python_version      = optional(string, "3.11")
+      use_32_bit_worker   = optional(bool, false)
+    }))
+    app_function_subnet = object({
+      name           = string
+      vnet_name      = string
+      resource_group = string
+    })
+    privatelink_subnet = object({
+      name           = string
+      vnet_name      = string
+      resource_group = string
+    })
+    privatelink_funcapp_subnet = object({
+      name           = string
+      vnet_name      = string
+      resource_group = string
+    })
+    private_dns_zone_id                       = string
+    func_app_private_dns_zone_id              = string
+    file_share_private_dns_zone_id            = string
+    public_network_access_enabled             = optional(bool, false)
+    vnet_route_all_enabled                    = optional(bool, true)
+    application_insights_enabled              = optional(bool, true)
+    application_insights_connection_string    = optional(string)
+    application_insights_key                  = optional(string)
+    log_analytics_worksapce_id                = optional(string)
+    daily_memory_time_quota                   = optional(number, 0)
+    customer_managed_key_enabled              = optional(bool, false)
+    kv_name                                   = optional(string)
+    kv_resource_group_name                    = optional(string)
+    cmk_name                                  = optional(string)
+    storage_use                               = optional(string, "AzureFiles")
+    sku_name                                  = optional(string, "Standard_LRS")
+    create_fileshare                          = optional(bool, true)
+    file_shares                               = optional(list(string), [])
+    uai_required                              = optional(bool, true)
   }))
   default = {}
 }
@@ -156,10 +223,37 @@ variable "function_apps" {
 ############################## Logic Apps vars ####################
 
 variable "logic_apps" {
-  description = "Map of logic apps to create"
+  description = "Map of logic apps to create with comprehensive configuration"
   type = map(object({
-    name     = string
-    env_vars = map(string)
+    resource_location                    = optional(string, "uaenorth")
+    resource_group_name                 = string
+    application_name                    = string
+    environment                         = string
+    storage_account_name               = string
+    app_service_plan_name              = string
+    service_plan_name                   = string
+    user_assigned_identity_ids          = optional(list(string), [])
+    privatelink_subnet = object({
+      name           = string
+      vnet_name      = string
+      resource_group = string
+    })
+    private_dns_zone_id                = string
+    sku_name                           = optional(string, "Standard_LRS")
+    file_shares                        = optional(list(string), [])
+    customer_managed_key_enabled       = optional(bool, false)
+    kv_name                            = optional(string)
+    kv_resource_group_name             = optional(string)
+    cmk_name                           = optional(string)
+    storage_use                        = optional(string, "AzureFiles")
+    definistion_file_path              = optional(string)
+    file_share_private_dns_zone_id     = string
+    create_fileshare                   = optional(bool, true)
+    existing_service_plan              = optional(string)
+    uai_required                       = optional(bool, true)
+    logic_apps = map(object({
+      app_settings = optional(map(string), {})
+    }))
   }))
   default = {}
 }
