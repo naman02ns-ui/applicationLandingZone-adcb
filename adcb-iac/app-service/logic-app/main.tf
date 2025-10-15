@@ -23,7 +23,7 @@ module "storage_account" {
   storage_account_name          = format("logic-sa-%s-%s-%s-%s", var.application_name, var.environment, local.location_shortcode, module.res-id.result)
   account_kind                  = "StorageV2"
   skuname                       = var.sku_name
-  public_network_access_enabled = false  # Secure access through private endpoint and managed identity
+  public_network_access_enabled = false
  tags                           = local.tags
   file_shares                   = var.file_shares
   customer_managed_key          = var.customer_managed_key_enabled
@@ -37,7 +37,7 @@ module "storage_account" {
 
 resource "azurerm_private_endpoint" "pep" {
   count               = var.privatelink_subnet != null ? 1 : 0
-  name                = format("pe-logic-sa-%s-%s-%s", var.application_name, var.environment, local.location_shortcode)
+  name                = format("pe-sa-%s-%s-%s", var.application_name, var.environment, local.location_shortcode)
   location            = local.location
   resource_group_name = var.resource_group_name
   subnet_id           = data.azurerm_subnet.privatelink_subnet[0].id
@@ -101,41 +101,4 @@ resource "azurerm_logic_app_standard" "this" {
     resource_type = "Logic-app"
     }
   )
-}
-
-# RBAC: Grant Logic Apps managed identity access to storage account
-resource "azurerm_role_assignment" "logic_app_storage_blob_data_contributor" {
-  count                = length(var.logic_apps) > 0 ? 1 : 0
-  scope                = module.storage_account.storage_account_id
-  role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = azurerm_user_assigned_identity.uai[0].principal_id
-}
-
-resource "azurerm_role_assignment" "logic_app_storage_file_data_smb_share_contributor" {
-  count                = length(var.logic_apps) > 0 ? 1 : 0
-  scope                = module.storage_account.storage_account_id
-  role_definition_name = "Storage File Data SMB Share Contributor"
-  principal_id         = azurerm_user_assigned_identity.uai[0].principal_id
-}
-
-resource "azurerm_role_assignment" "logic_app_storage_queue_data_contributor" {
-  count                = length(var.logic_apps) > 0 ? 1 : 0
-  scope                = module.storage_account.storage_account_id
-  role_definition_name = "Storage Queue Data Contributor"
-  principal_id         = azurerm_user_assigned_identity.uai[0].principal_id
-}
-
-# RBAC: Grant Logic Apps system-assigned identity access to storage account
-resource "azurerm_role_assignment" "logic_app_system_storage_blob_data_contributor" {
-  for_each             = var.logic_apps
-  scope                = module.storage_account.storage_account_id
-  role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = azurerm_logic_app_standard.this[each.key].identity[0].principal_id
-}
-
-resource "azurerm_role_assignment" "logic_app_system_storage_file_data_smb_share_contributor" {
-  for_each             = var.logic_apps
-  scope                = module.storage_account.storage_account_id
-  role_definition_name = "Storage File Data SMB Share Contributor"
-  principal_id         = azurerm_logic_app_standard.this[each.key].identity[0].principal_id
 }

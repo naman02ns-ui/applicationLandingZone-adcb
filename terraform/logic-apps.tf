@@ -34,19 +34,38 @@ module "logic_apps" {
   depends_on = [module.app_service_plans]
 }
 
+# =============================================================================
+# Data Sources for Logic App User-Assigned Identities
+# =============================================================================
+
+data "azurerm_user_assigned_identity" "logic_app_identity" {
+  for_each = var.logic_apps
+
+  name                = "uai-${each.value.application_name}-${each.value.environment}-logic-${each.key}"
+  resource_group_name = each.value.resource_group_name
+
+  depends_on = [module.logic_apps]
+}
+
+# =============================================================================
+# RBAC Assignments
+# =============================================================================
+
 # Grant Logic App's User-Assigned Managed Identity access to Key Vault
 resource "azurerm_role_assignment" "logic_app_kv_secrets_user" {
   for_each = {
-    for la_key, la_config in var.logic_apps : la_key => la_config
-    if module.logic_apps[la_key].user_assigned_identity_principal_id != null
+    for la_key, la_config in var.logic_apps : la_key => {
+      scope        = module.azure_key_vault.id
+      principal_id = data.azurerm_user_assigned_identity.logic_app_identity[la_key].principal_id
+    }
   }
 
-  scope                = module.azure_key_vault.id
+  scope                = each.value.scope
   role_definition_name = "Key Vault Secrets User"
-  principal_id         = module.logic_apps[each.key].user_assigned_identity_principal_id
-  description          = "Grant Logic App ${each.key} access to Key Vault"
+  principal_id         = each.value.principal_id
+  description          = "Grant Logic App ${each.key} access to Key Vault secrets"
 
-  depends_on = [module.azure_key_vault, module.logic_apps]
+  depends_on = [module.logic_apps, data.azurerm_user_assigned_identity.logic_app_identity]
 }
 
 # Grant Logic Apps access to Cosmos DB
@@ -54,8 +73,8 @@ resource "azurerm_role_assignment" "logic_app_cosmosdb_contributor" {
   for_each = {
     for la_key, la_config in var.logic_apps : la_key => {
       scope        = "/subscriptions/${var.management_sub_id}/resourceGroups/${module.resource_group.rg_name}/providers/Microsoft.DocumentDB/databaseAccounts/*"
-      principal_id = module.logic_apps[la_key].user_assigned_identity_principal_id
-    } if module.logic_apps[la_key].user_assigned_identity_principal_id != null
+      principal_id = data.azurerm_user_assigned_identity.logic_app_identity[la_key].principal_id
+    }
   }
 
   scope                = each.value.scope
@@ -63,7 +82,7 @@ resource "azurerm_role_assignment" "logic_app_cosmosdb_contributor" {
   principal_id         = each.value.principal_id
   description          = "Grant Logic App ${each.key} access to Cosmos DB"
 
-  depends_on = [module.logic_apps]
+  depends_on = [module.logic_apps, data.azurerm_user_assigned_identity.logic_app_identity]
 }
 
 # Grant Logic Apps access to Storage Account
@@ -71,8 +90,8 @@ resource "azurerm_role_assignment" "logic_app_storage_blob_contributor" {
   for_each = {
     for la_key, la_config in var.logic_apps : la_key => {
       scope        = "/subscriptions/${var.management_sub_id}/resourceGroups/${module.resource_group.rg_name}/providers/Microsoft.Storage/storageAccounts/*"
-      principal_id = module.logic_apps[la_key].user_assigned_identity_principal_id
-    } if module.logic_apps[la_key].user_assigned_identity_principal_id != null
+      principal_id = data.azurerm_user_assigned_identity.logic_app_identity[la_key].principal_id
+    }
   }
 
   scope                = each.value.scope
@@ -80,5 +99,5 @@ resource "azurerm_role_assignment" "logic_app_storage_blob_contributor" {
   principal_id         = each.value.principal_id
   description          = "Grant Logic App ${each.key} access to Storage Account"
 
-  depends_on = [module.logic_apps]
+  depends_on = [module.logic_apps, data.azurerm_user_assigned_identity.logic_app_identity]
 }

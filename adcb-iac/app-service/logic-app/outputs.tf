@@ -20,17 +20,6 @@ description = "The name of the backend storage account used for the function app
 value       = module.storage_account.storage_account_name
 }
 
-# Output for User-Assigned Managed Identity
-output "user_assigned_identity_id" {
-  description = "The ID of the User-Assigned Managed Identity"
-  value       = var.uai_required ? azurerm_user_assigned_identity.uai[0].id : null
-}
-
-output "user_assigned_identity_principal_id" {
-  description = "The Principal ID of the User-Assigned Managed Identity"
-  value       = var.uai_required ? azurerm_user_assigned_identity.uai[0].principal_id : null
-}
-
 /*
 output "backend_storage_account_access_key" {
 description = "The name of the backend storage account used for the function app"
