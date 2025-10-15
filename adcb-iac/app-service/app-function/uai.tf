@@ -1,4 +1,3 @@
-
 resource "azurerm_user_assigned_identity" "uai" {
   count               = var.uai_required ? 1 : 0
   location            = local.location

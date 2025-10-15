@@ -28,7 +28,6 @@ module "app-insights" {
   workspace_id        = var.application_insights_enabled == true ? var.log_analytics_worksapce_id : null
 }
 
-
 # ${each.value.name}
 module "storage_account" {
   source = "../../storage"
@@ -96,7 +95,7 @@ resource "azurerm_private_endpoint" "pep-fileshare" {
   tags = local.tags
 }
 
- resource "azurerm_linux_function_app" "function-app" {
+resource "azurerm_linux_function_app" "function-app" {
   for_each                   = var.function_apps
   location                   = local.location
   name                       = "${var.application_name}-${var.environment}-${each.value.name}"
@@ -252,5 +251,3 @@ resource "azurerm_private_endpoint" "funcapp_pep" {
 
   tags = local.tags
 }
-
-

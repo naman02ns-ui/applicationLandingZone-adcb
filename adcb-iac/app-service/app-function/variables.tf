@@ -299,11 +299,11 @@ variable "file_share_private_dns_zone_id" {
   default     = null
 }
 
-variable "file_share_name" {
+ variable "file_share_name" {
   description = "Name of the file share for the function app"
   type        = string
   default     = null
-}
+ }
 
 variable "file_share_quota" {
   default = 100

@@ -1,13 +1,13 @@
-module "ai-search" {
-  source              = "../adcb-iac/ai-search"
-  location            = var.location
-  resource_group_name = module.resource_group.rg_name
-  replica_count       = var.replica_count
-  environment         = var.environment
-  application_name    = var.application_name
-  tags                = local.tags
-  private_dns_zone_id = data.azurerm_private_dns_zone.aisrch_dns_zone.id
-}
+# module "ai-search" {
+#   source              = "../adcb-iac/ai-search"
+#   location            = var.location
+#   resource_group_name = module.resource_group.rg_name
+#   replica_count       = var.replica_count
+#   environment         = var.environment
+#   application_name    = var.application_name
+#   tags                = local.tags
+#   private_dns_zone_id = data.azurerm_private_dns_zone.aisrch_dns_zone.id
+# }
 
 /*
 resource "azurerm_private_dns_zone_virtual_network_link" "aisrch-connectivity-to-ailighthouse-vnl" {

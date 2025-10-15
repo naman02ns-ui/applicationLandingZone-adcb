@@ -5,7 +5,7 @@ application_name = "aiapps"
 ainonprod_sub_id = "eed58c8e-f08c-4839-9bfe-469f4705d062"  #- This is sub ID for AI-Apps non-prod
 
 #--------------AI Search--------------------#
-replica_count = 3
+# replica_count = 3
 
 #--------------Network--------------------#
 vnet_address_spaces = ["10.114.164.0/22"]
