@@ -273,12 +273,13 @@ variable "container_app_environments" {
       vnet_name      = string
       resource_group = string
     })
-    workload_profile = optional(list(object({
+    workload_profile = optional(object({
       name                  = string
       workload_profile_type = string
-      maximum_count         = optional(number)
-      minimum_count         = optional(number)
-    })), [])
+    }), {
+      name                  = "Consumption"
+      workload_profile_type = "Consumption"
+    })
     log_analytics_workspace_id = optional(string)
     tags                      = optional(map(string), {})
   }))

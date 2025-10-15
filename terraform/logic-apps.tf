@@ -13,7 +13,10 @@ module "logic_apps" {
   environment                         = each.value.environment
   storage_account_name               = each.value.storage_account_name
   service_plan_name                   = each.value.service_plan_name
-  existing_service_plan              = module.app_service_plans[each.value.app_service_plan_name].id
+  existing_service_plan = {
+    name                = each.value.app_service_plan_name
+    resource_group_name = each.value.resource_group_name
+  }
   user_assigned_identity_ids          = each.value.user_assigned_identity_ids
   privatelink_subnet                  = each.value.privatelink_subnet
   private_dns_zone_id                = each.value.private_dns_zone_id

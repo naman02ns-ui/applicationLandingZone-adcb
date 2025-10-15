@@ -1,4 +1,3 @@
-
 variable "resource_location" {
   type        = string
   description = "location of the redis cache"

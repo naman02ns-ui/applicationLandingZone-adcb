@@ -13,7 +13,10 @@ module "function_apps" {
   environment                               = each.value.environment
   service_plan_sku                          = "EP1"  # This will be overridden by existing_service_plan
   max_elastic_worker_count                  = 20
-  existing_service_plan                     = module.app_service_plans[each.value.app_service_plan_name].id
+  existing_service_plan = {
+    name                = each.value.app_service_plan_name
+    resource_group_name = each.value.resource_group_name
+  }
   function_apps                             = each.value.function_apps
   app_function_subnet                       = each.value.app_function_subnet
   privatelink_subnet                        = each.value.privatelink_subnet

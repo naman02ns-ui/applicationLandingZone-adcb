@@ -1,6 +1,6 @@
 ## AI Apps NonProd##
 
-environment = "dev"
+environment = "preprod"
 application_name = "aiapps"
 ainonprod_sub_id = "eed58c8e-f08c-4839-9bfe-469f4705d062"  #- This is sub ID for AI-Apps non-prod
 
@@ -134,7 +134,7 @@ containername = "aifoundry"
 app_service_plans = {
   "aiapps-function-asp" = {
     resource_location        = "uaenorth"
-    resource_group_name     = "rg-aiapps-nonprod-uaenorth-001"
+    resource_group_name     = "rg-aiapps-nonprod-uaenorth-8200ys"
     application_name        = "aiapps"
     environment             = "dev"
     service_plan_sku        = "EP1"
@@ -146,7 +146,7 @@ app_service_plans = {
 
   "aiapps-logic-asp" = {
     resource_location        = "uaenorth"
-    resource_group_name     = "rg-aiapps-nonprod-uaenorth-001"
+    resource_group_name     = "rg-aiapps-nonprod-uaenorth-8200ys"
     application_name        = "aiapps"
     environment             = "dev"
     service_plan_sku        = "EP1"
@@ -162,7 +162,7 @@ app_service_plans = {
 container_registries = {
   "aiapps-nonprod-acr" = {
     resource_location               = "uaenorth"
-    resource_group_name            = "rg-aiapps-nonprod-uaenorth-001"
+    resource_group_name            = "rg-aiapps-nonprod-uaenorth-8200ys"
     application_name               = "aiapps"
     environment                    = "dev"
     zone_redundancy_enabled        = false
@@ -192,19 +192,19 @@ container_app_environments = {
   "aiapps-nonprod-cae" = {
     management_sub_id           = "eed58c8e-f08c-4839-9bfe-469f4705d062"
     resource_location          = "uaenorth"
-    resource_group_name        = "rg-aiapps-nonprod-uaenorth-001"
+    resource_group_name        = "rg-aiapps-nonprod-uaenorth-8200ys"
     application_name           = "aiapps"
     environment               = "dev"
     subnet = {
       name           = "snet-ai-apps-uaenorth-001"
-      vnet_name      = "vnet-aiapps-nonprod-uaenorth-001"
-      resource_group = "rg-aiapps-nonprod-uaenorth-001"
+      vnet_name      = "vnet-aiapps-nonprod-uan"
+      resource_group = "rg-aiapps-nonprod-uaenorth-8200ys"
     }
-    workload_profile = [{
+    workload_profile = {
       name                  = "Consumption"
       workload_profile_type = "Consumption"
-    }]
-    log_analytics_workspace_id = "/subscriptions/eed58c8e-f08c-4839-9bfe-469f4705d062/resourceGroups/rg-aiapps-nonprod-uaenorth-001/providers/Microsoft.OperationalInsights/workspaces/log-aiapps-nonprod-uaenorth-001"
+    }
+    log_analytics_workspace_id = "/subscriptions/eed58c8e-f08c-4839-9bfe-469f4705d062/resourceGroups/rg-aiapps-nonprod-uaenorth-8200ys/providers/Microsoft.OperationalInsights/workspaces/log-aiapps-nonprod-uaenorth-001"
   }
 }
 
@@ -215,9 +215,9 @@ container_app_environments = {
 container_apps = {
   "aiapps-api-service" = {
     resource_location             = "uaenorth"
-    resource_group_name          = "rg-aiapps-nonprod-uaenorth-001"
+    resource_group_name          = "rg-aiapps-nonprod-uaenorth-8200ys"
     application_name             = "aiapps"
-    environment                  = "nonprod"
+    environment                  = "preprod"
     container_app_environment_name = "aiapps-nonprod-cae"
     ingress = {
       external_enabled = true
@@ -231,19 +231,19 @@ container_apps = {
     }]
     revision_mode = "Single"
     identity = {
-      identity_ids = ["/subscriptions/eed58c8e-f08c-4839-9bfe-469f4705d062/resourceGroups/rg-aiapps-nonprod-uaenorth-001/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-aiapps-api-nonprod-001"]
+      identity_ids = ["/subscriptions/eed58c8e-f08c-4839-9bfe-469f4705d062/resourceGroups/rg-aiapps-nonprod-uaenorth-8200ys/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-aiapps-api-nonprod-001"]
     }
     tags = {
-      Environment = "nonprod"
+      Environment = "preprod"
       Service     = "API"
     }
   }
 
   "aiapps-processing-service" = {
     resource_location             = "uaenorth"
-    resource_group_name          = "rg-aiapps-nonprod-uaenorth-001"
+    resource_group_name          = "rg-aiapps-nonprod-uaenorth-8200ys"
     application_name             = "aiapps"
-    environment                  = "nonprod"
+    environment                  = "preprod"
     container_app_environment_name = "aiapps-nonprod-cae"
     ingress = {
       external_enabled = false
@@ -257,19 +257,19 @@ container_apps = {
     }]
     revision_mode = "Single"
     identity = {
-      identity_ids = ["/subscriptions/eed58c8e-f08c-4839-9bfe-469f4705d062/resourceGroups/rg-aiapps-nonprod-uaenorth-001/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-aiapps-processing-nonprod-001"]
+      identity_ids = ["/subscriptions/eed58c8e-f08c-4839-9bfe-469f4705d062/resourceGroups/rg-aiapps-nonprod-uaenorth-8200ys/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-aiapps-processing-nonprod-001"]
     }
     tags = {
-      Environment = "nonprod"
+      Environment = "preprod"
       Service     = "Processing"
     }
   }
 
   "aiapps-notification-service" = {
     resource_location             = "uaenorth"
-    resource_group_name          = "rg-aiapps-nonprod-uaenorth-001"
+    resource_group_name          = "rg-aiapps-nonprod-uaenorth-8200ys"
     application_name             = "aiapps"
-    environment                  = "nonprod"
+    environment                  = "preprod"
     container_app_environment_name = "aiapps-nonprod-cae"
     ingress = {
       external_enabled = false
@@ -283,10 +283,10 @@ container_apps = {
     }]
     revision_mode = "Single"
     identity = {
-      identity_ids = ["/subscriptions/eed58c8e-f08c-4839-9bfe-469f4705d062/resourceGroups/rg-aiapps-nonprod-uaenorth-001/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-aiapps-notification-nonprod-001"]
+      identity_ids = ["/subscriptions/eed58c8e-f08c-4839-9bfe-469f4705d062/resourceGroups/rg-aiapps-nonprod-uaenorth-8200ys/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-aiapps-notification-nonprod-001"]
     }
     tags = {
-      Environment = "nonprod"
+      Environment = "preprod"
       Service     = "Notification"
     }
   }
@@ -299,32 +299,35 @@ container_apps = {
 function_apps = {
   "aiapps-data-processor" = {
     resource_location                          = "uaenorth"
-    resource_group_name                       = "rg-aiapps-nonprod-uaenorth-001"
+    resource_group_name                       = "rg-aiapps-nonprod-uaenorth-8200ys"
     application_name                          = "aiapps"
-    environment                               = "nonprod"
+    environment                               = "preprod"
     app_service_plan_name                     = "aiapps-function-asp"
     existing_service_plan                     = null
     function_apps = {
       "func-data-processor" = {
-        function_app_version = "~4"
-        python_version      = "3.12"
-        use_32_bit_worker   = false
+        name                 = "func-data-processor"
+        env_vars = {
+          "FUNCTIONS_WORKER_RUNTIME" = "python"
+          "PYTHON_VERSION"           = "3.12"
+        }
+        file_share_name     = "func-data-processor-share"
       }
     }
     app_function_subnet = {
       name           = "snet-fn-app-outbound-uaenorth-001"
-      vnet_name      = "vnet-aiapps-nonprod-uaenorth-001"
-      resource_group = "rg-aiapps-nonprod-uaenorth-001"
+      vnet_name      = "vnet-aiapps-nonprod-uan"
+      resource_group = "rg-aiapps-nonprod-uaenorth-8200ys"
     }
     privatelink_subnet = {
       name           = "snet-private-endpoint-uaenorth-001"
-      vnet_name      = "vnet-aiapps-nonprod-uaenorth-001"
-      resource_group = "rg-aiapps-nonprod-uaenorth-001"
+      vnet_name      = "vnet-aiapps-nonprod-uan"
+      resource_group = "rg-aiapps-nonprod-uaenorth-8200ys"
     }
     privatelink_funcapp_subnet = {
       name           = "snet-private-endpoint-uaenorth-001"
-      vnet_name      = "vnet-aiapps-nonprod-uaenorth-001"
-      resource_group = "rg-aiapps-nonprod-uaenorth-001"
+      vnet_name      = "vnet-aiapps-nonprod-uan"
+      resource_group = "rg-aiapps-nonprod-uaenorth-8200ys"
     }
     private_dns_zone_id                       = "/subscriptions/connectivity-sub-id/resourceGroups/rg-connectivity-dns-uaenorth-01/providers/Microsoft.Network/privateDnsZones/privatelink.azurewebsites.net"
     func_app_private_dns_zone_id              = "/subscriptions/connectivity-sub-id/resourceGroups/rg-connectivity-dns-uaenorth-01/providers/Microsoft.Network/privateDnsZones/privatelink.azurewebsites.net"
@@ -348,32 +351,35 @@ function_apps = {
 
   "aiapps-ml-inference" = {
     resource_location                          = "uaenorth"
-    resource_group_name                       = "rg-aiapps-nonprod-uaenorth-001"
+    resource_group_name                       = "rg-aiapps-nonprod-uaenorth-8200ys"
     application_name                          = "aiapps"
-    environment                               = "nonprod"
+    environment                               = "preprod"
     app_service_plan_name                     = "aiapps-function-asp"
     existing_service_plan                     = null
     function_apps = {
       "func-ml-inference" = {
-        function_app_version = "~4"
-        python_version      = "3.11"
-        use_32_bit_worker   = false
+        name                 = "func-ml-inference"
+        env_vars = {
+          "FUNCTIONS_WORKER_RUNTIME" = "python"
+          "PYTHON_VERSION"           = "3.11"
+        }
+        file_share_name     = "func-ml-inference-share"
       }
     }
     app_function_subnet = {
       name           = "snet-fn-app-outbound-uaenorth-001"
-      vnet_name      = "vnet-aiapps-nonprod-uaenorth-001"
-      resource_group = "rg-aiapps-nonprod-uaenorth-001"
+      vnet_name      = "vnet-aiapps-nonprod-uan"
+      resource_group = "rg-aiapps-nonprod-uaenorth-8200ys"
     }
     privatelink_subnet = {
       name           = "snet-private-endpoint-uaenorth-001"
-      vnet_name      = "vnet-aiapps-nonprod-uaenorth-001"
-      resource_group = "rg-aiapps-nonprod-uaenorth-001"
+      vnet_name      = "vnet-aiapps-nonprod-uan"
+      resource_group = "rg-aiapps-nonprod-uaenorth-8200ys"
     }
     privatelink_funcapp_subnet = {
       name           = "snet-private-endpoint-uaenorth-001"
-      vnet_name      = "vnet-aiapps-nonprod-uaenorth-001"
-      resource_group = "rg-aiapps-nonprod-uaenorth-001"
+      vnet_name      = "vnet-aiapps-nonprod-uan"
+      resource_group = "rg-aiapps-nonprod-uaenorth-8200ys"
     }
     private_dns_zone_id                       = "/subscriptions/connectivity-sub-id/resourceGroups/rg-connectivity-dns-uaenorth-01/providers/Microsoft.Network/privateDnsZones/privatelink.azurewebsites.net"
     func_app_private_dns_zone_id              = "/subscriptions/connectivity-sub-id/resourceGroups/rg-connectivity-dns-uaenorth-01/providers/Microsoft.Network/privateDnsZones/privatelink.azurewebsites.net"
@@ -397,32 +403,35 @@ function_apps = {
 
   "aiapps-integration-handler" = {
     resource_location                          = "uaenorth"
-    resource_group_name                       = "rg-aiapps-nonprod-uaenorth-001"
+    resource_group_name                       = "rg-aiapps-nonprod-uaenorth-8200ys"
     application_name                          = "aiapps"
-    environment                               = "nonprod"
+    environment                               = "preprod"
     app_service_plan_name                     = "aiapps-function-asp"
     existing_service_plan                     = null
     function_apps = {
       "func-integration-handler" = {
-        function_app_version = "~4"
-        python_version      = "3.11"
-        use_32_bit_worker   = false
+        name                 = "func-integration-handler"
+        env_vars = {
+          "FUNCTIONS_WORKER_RUNTIME" = "python"
+          "PYTHON_VERSION"           = "3.11"
+        }
+        file_share_name     = "func-integration-handler-share"
       }
     }
     app_function_subnet = {
       name           = "snet-fn-app-outbound-uaenorth-001"
-      vnet_name      = "vnet-aiapps-nonprod-uaenorth-001"
-      resource_group = "rg-aiapps-nonprod-uaenorth-001"
+      vnet_name      = "vnet-aiapps-nonprod-uan"
+      resource_group = "rg-aiapps-nonprod-uaenorth-8200ys"
     }
     privatelink_subnet = {
       name           = "snet-private-endpoint-uaenorth-001"
-      vnet_name      = "vnet-aiapps-nonprod-uaenorth-001"
-      resource_group = "rg-aiapps-nonprod-uaenorth-001"
+      vnet_name      = "vnet-aiapps-nonprod-uan"
+      resource_group = "rg-aiapps-nonprod-uaenorth-8200ys"
     }
     privatelink_funcapp_subnet = {
       name           = "snet-private-endpoint-uaenorth-001"
-      vnet_name      = "vnet-aiapps-nonprod-uaenorth-001"
-      resource_group = "rg-aiapps-nonprod-uaenorth-001"
+      vnet_name      = "vnet-aiapps-nonprod-uan"
+      resource_group = "rg-aiapps-nonprod-uaenorth-8200ys"
     }
     private_dns_zone_id                       = "/subscriptions/connectivity-sub-id/resourceGroups/rg-connectivity-dns-uaenorth-01/providers/Microsoft.Network/privateDnsZones/privatelink.azurewebsites.net"
     func_app_private_dns_zone_id              = "/subscriptions/connectivity-sub-id/resourceGroups/rg-connectivity-dns-uaenorth-01/providers/Microsoft.Network/privateDnsZones/privatelink.azurewebsites.net"
@@ -450,17 +459,17 @@ function_apps = {
 logic_apps = {
   "aiapps-workflow-orchestrator" = {
     resource_location                    = "uaenorth"
-    resource_group_name                 = "rg-aiapps-nonprod-uaenorth-001"
+    resource_group_name                 = "rg-aiapps-nonprod-uaenorth-8200ys"
     application_name                    = "aiapps"
-    environment                         = "nonprod"
+    environment                         = "preprod"
     storage_account_name               = "staiappsnonproduaen001"
     app_service_plan_name              = "aiapps-logic-asp"
     service_plan_name                   = "asp-aiapps-workflow-nonprod-001"
-    user_assigned_identity_ids          = ["/subscriptions/eed58c8e-f08c-4839-9bfe-469f4705d062/resourceGroups/rg-aiapps-nonprod-uaenorth-001/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-aiapps-workflow-nonprod-001"]
+    user_assigned_identity_ids          = ["/subscriptions/eed58c8e-f08c-4839-9bfe-469f4705d062/resourceGroups/rg-aiapps-nonprod-uaenorth-8200ys/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-aiapps-workflow-nonprod-001"]
     privatelink_subnet = {
       name           = "snet-private-endpoint-uaenorth-001"
-      vnet_name      = "vnet-aiapps-nonprod-uaenorth-001"
-      resource_group = "rg-aiapps-nonprod-uaenorth-001"
+      vnet_name      = "vnet-aiapps-nonprod-uan"
+      resource_group = "rg-aiapps-nonprod-uaenorth-8200ys"
     }
     private_dns_zone_id                = "/subscriptions/connectivity-sub-id/resourceGroups/rg-connectivity-dns-uaenorth-01/providers/Microsoft.Network/privateDnsZones/privatelink.azurewebsites.net"
     sku_name                           = "Standard_LRS"
@@ -469,7 +478,7 @@ logic_apps = {
     kv_name                            = null
     kv_resource_group_name             = null
     cmk_name                           = null
-    storage_use                        = "AzureFiles"
+    storage_use                        = true
     definistion_file_path              = null
     file_share_private_dns_zone_id     = "/subscriptions/connectivity-sub-id/resourceGroups/rg-connectivity-dns-uaenorth-01/providers/Microsoft.Network/privateDnsZones/privatelink.file.core.windows.net"
     create_fileshare                   = true
@@ -477,9 +486,8 @@ logic_apps = {
     uai_required                       = true
     logic_apps = {
       "logic-workflow-orchestrator" = {
-        app_settings = {
-          # Logic Apps use workflow definitions (JSON), not runtime environments
-          # They can call Python Functions but don't run Python code directly
+        name = "logic-workflow-orchestrator"
+        env_vars = {
           "AzureWebJobsStorage" = "DefaultEndpointsProtocol=https;AccountName=staiappsnonproduaen001;EndpointSuffix=core.windows.net"
           "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING" = "DefaultEndpointsProtocol=https;AccountName=staiappsnonproduaen001;EndpointSuffix=core.windows.net"
         }
