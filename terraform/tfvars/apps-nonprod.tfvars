@@ -1,6 +1,6 @@
 ## AI Apps NonProd##
 
-environment = "preprod"
+environment = "dev"
 application_name = "aiapps"
 ainonprod_sub_id = "eed58c8e-f08c-4839-9bfe-469f4705d062"  #- This is sub ID for AI-Apps non-prod
 
@@ -212,106 +212,54 @@ container_app_environments = {
 # Container Apps require pre-built container images in the registry
 # Commenting out until images are available
 
-container_apps = {
-  "aiapps-api-service" = {
-    resource_location             = "uaenorth"
-    resource_group_name          = "rg-aiapps-nonprod-uaenorth-8200ys"
-    application_name             = "aiapps"
-    environment                  = "preprod"
-    container_app_environment_name = "aiapps-nonprod-cae"
-    ingress = {
-      external_enabled = true
-      target_port     = 8080
-    }
-    containers = [{
-      name   = "api-service"
-      cpu    = "0.5"
-      memory = "1Gi"
-      image  = "aiapps-nonprod-acr.azurecr.io/api-service:latest"
-    }]
-    revision_mode = "Single"
-    identity = {
-      identity_ids = ["/subscriptions/eed58c8e-f08c-4839-9bfe-469f4705d062/resourceGroups/rg-aiapps-nonprod-uaenorth-8200ys/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-aiapps-api-nonprod-001"]
-    }
-    tags = {
-      Environment = "preprod"
-      Service     = "API"
-    }
-  }
+# container_apps = {
+#   "aiapps-api-service" = {
+#     resource_location             = "uaenorth"
+#     resource_group_name          = "rg-aiapps-nonprod-uaenorth-8200ys"
+#     application_name             = "aiapps"
+#     environment                  = "dev"
+#     container_app_environment_name = "aiapps-nonprod-cae"
+#     ingress = {
+#       external_enabled = true
+#       target_port     = 8080
+#     }
+#     containers = [{
+#       name   = "api-service"
+#       cpu    = "0.5"
+#       memory = "1Gi"
+#       image  = "aiapps-nonprod-acr.azurecr.io/api-service:latest"
+#     }]
+#     revision_mode = "Single"
+#     identity = {
+#       identity_ids = ["/subscriptions/eed58c8e-f08c-4839-9bfe-469f4705d062/resourceGroups/rg-aiapps-nonprod-uaenorth-8200ys/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-aiapps-api-nonprod-001"]
+#     }
+#     tags = {
+#       Environment = "dev"
+#       Service     = "API"
+#     }
+#   }
+# }
 
-  "aiapps-processing-service" = {
-    resource_location             = "uaenorth"
-    resource_group_name          = "rg-aiapps-nonprod-uaenorth-8200ys"
-    application_name             = "aiapps"
-    environment                  = "preprod"
-    container_app_environment_name = "aiapps-nonprod-cae"
-    ingress = {
-      external_enabled = false
-      target_port     = 8080
-    }
-    containers = [{
-      name   = "processing-service"
-      cpu    = "1.0"
-      memory = "2Gi"
-      image  = "aiapps-nonprod-acr.azurecr.io/processing-service:latest"
-    }]
-    revision_mode = "Single"
-    identity = {
-      identity_ids = ["/subscriptions/eed58c8e-f08c-4839-9bfe-469f4705d062/resourceGroups/rg-aiapps-nonprod-uaenorth-8200ys/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-aiapps-processing-nonprod-001"]
-    }
-    tags = {
-      Environment = "preprod"
-      Service     = "Processing"
-    }
-  }
-
-  "aiapps-notification-service" = {
-    resource_location             = "uaenorth"
-    resource_group_name          = "rg-aiapps-nonprod-uaenorth-8200ys"
-    application_name             = "aiapps"
-    environment                  = "preprod"
-    container_app_environment_name = "aiapps-nonprod-cae"
-    ingress = {
-      external_enabled = false
-      target_port     = 8080
-    }
-    containers = [{
-      name   = "notification-service"
-      cpu    = "0.25"
-      memory = "0.5Gi"
-      image  = "aiapps-nonprod-acr.azurecr.io/notification-service:latest"
-    }]
-    revision_mode = "Single"
-    identity = {
-      identity_ids = ["/subscriptions/eed58c8e-f08c-4839-9bfe-469f4705d062/resourceGroups/rg-aiapps-nonprod-uaenorth-8200ys/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-aiapps-notification-nonprod-001"]
-    }
-    tags = {
-      Environment = "preprod"
-      Service     = "Notification"
-    }
-  }
-}
-
-# container_apps = {}
+container_apps = {}
 
 #--------------Function Apps--------------------#
 
 function_apps = {
-  "aiapps-data-processor" = {
+  "aiagent-data-processor" = {
     resource_location                          = "uaenorth"
     resource_group_name                       = "rg-aiapps-nonprod-uaenorth-8200ys"
     application_name                          = "aiapps"
-    environment                               = "preprod"
+    environment                               = "dev"
     app_service_plan_name                     = "aiapps-function-asp"
     existing_service_plan                     = null
     function_apps = {
-      "func-data-processor" = {
-        name                 = "func-data-processor"
+      "func-aiagent-data-processor" = {
+        name                 = "func-aiagent-data-processor"
         env_vars = {
           "FUNCTIONS_WORKER_RUNTIME" = "python"
           "PYTHON_VERSION"           = "3.12"
         }
-        file_share_name     = "func-data-processor-share"
+        file_share_name     = "func-aiagent-data-processor-share"
       }
     }
     app_function_subnet = {
@@ -349,21 +297,21 @@ function_apps = {
     file_shares                               = []
   }
 
-  "aiapps-ml-inference" = {
+  "aiagent-ml-inference" = {
     resource_location                          = "uaenorth"
     resource_group_name                       = "rg-aiapps-nonprod-uaenorth-8200ys"
     application_name                          = "aiapps"
-    environment                               = "preprod"
+    environment                               = "dev"
     app_service_plan_name                     = "aiapps-function-asp"
     existing_service_plan                     = null
     function_apps = {
-      "func-ml-inference" = {
-        name                 = "func-ml-inference"
+      "func-aiagent-ml-inference" = {
+        name                 = "func-aiagent-ml-inference"
         env_vars = {
           "FUNCTIONS_WORKER_RUNTIME" = "python"
-          "PYTHON_VERSION"           = "3.11"
+          "PYTHON_VERSION"           = "3.12"
         }
-        file_share_name     = "func-ml-inference-share"
+        file_share_name     = "func-aiagent-ml-inference-share"
       }
     }
     app_function_subnet = {
@@ -401,21 +349,21 @@ function_apps = {
     file_shares                               = []
   }
 
-  "aiapps-integration-handler" = {
+  "aiagent-orchestrator" = {
     resource_location                          = "uaenorth"
     resource_group_name                       = "rg-aiapps-nonprod-uaenorth-8200ys"
     application_name                          = "aiapps"
-    environment                               = "preprod"
+    environment                               = "dev"
     app_service_plan_name                     = "aiapps-function-asp"
     existing_service_plan                     = null
     function_apps = {
-      "func-integration-handler" = {
-        name                 = "func-integration-handler"
+      "func-aiagent-orchestrator" = {
+        name                 = "func-aiagent-orchestrator"
         env_vars = {
           "FUNCTIONS_WORKER_RUNTIME" = "python"
-          "PYTHON_VERSION"           = "3.11"
+          "PYTHON_VERSION"           = "3.12"
         }
-        file_share_name     = "func-integration-handler-share"
+        file_share_name     = "func-aiagent-orchestrator-share"
       }
     }
     app_function_subnet = {
@@ -457,15 +405,15 @@ function_apps = {
 #--------------Logic Apps--------------------#
 
 logic_apps = {
-  "aiapps-workflow-orchestrator" = {
+  "aiagent-workflow-orchestrator" = {
     resource_location                    = "uaenorth"
     resource_group_name                 = "rg-aiapps-nonprod-uaenorth-8200ys"
     application_name                    = "aiapps"
-    environment                         = "preprod"
+    environment                         = "dev"
     storage_account_name               = "staiappsnonproduaen001"
     app_service_plan_name              = "aiapps-logic-asp"
-    service_plan_name                   = "asp-aiapps-workflow-nonprod-001"
-    user_assigned_identity_ids          = ["/subscriptions/eed58c8e-f08c-4839-9bfe-469f4705d062/resourceGroups/rg-aiapps-nonprod-uaenorth-8200ys/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-aiapps-workflow-nonprod-001"]
+    service_plan_name                   = "asp-aiagent-workflow-nonprod-001"
+    user_assigned_identity_ids          = ["/subscriptions/eed58c8e-f08c-4839-9bfe-469f4705d062/resourceGroups/rg-aiapps-nonprod-uaenorth-8200ys/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-aiagent-workflow-nonprod-001"]
     privatelink_subnet = {
       name           = "snet-private-endpoint-uaenorth-001"
       vnet_name      = "vnet-aiapps-nonprod-uan"
@@ -485,8 +433,8 @@ logic_apps = {
     existing_service_plan              = null
     uai_required                       = true
     logic_apps = {
-      "logic-workflow-orchestrator" = {
-        name = "logic-workflow-orchestrator"
+      "logic-aiagent-workflow-orchestrator" = {
+        name = "logic-aiagent-workflow-orchestrator"
         env_vars = {
           "AzureWebJobsStorage" = "DefaultEndpointsProtocol=https;AccountName=staiappsnonproduaen001;EndpointSuffix=core.windows.net"
           "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING" = "DefaultEndpointsProtocol=https;AccountName=staiappsnonproduaen001;EndpointSuffix=core.windows.net"
@@ -495,8 +443,3 @@ logic_apps = {
     }
   }
 }
-
-#--------------Key Vault Access--------------------#
-# Key Vault is created in the same deployment via kv.tf
-# RBAC assignments reference module.azure_key_vault directly
-# No additional configuration needed here
