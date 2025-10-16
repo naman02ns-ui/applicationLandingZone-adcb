@@ -2,7 +2,7 @@
 
 environment = "dev"
 application_name = "aiapps"
-ainonprod_sub_id = "eed58c8e-f08c-4839-9bfe-469f4705d062"  #- This is sub ID for AI-Apps non-prod
+ainonprod_sub_id = "bb14fef7-35fb-4743-846a-85f6051acb7f"  #- This is sub ID for AI-Apps non-prod
 
 #--------------AI Search--------------------#
 # replica_count = 3
@@ -294,7 +294,12 @@ function_apps = {
     storage_use                               = "AzureFiles"
     sku_name                                  = "Standard_LRS"
     create_fileshare                          = true
-    file_shares                               = []
+    file_shares                               = [
+      {
+        name = "func-aiagent-data-processor-share"
+        quota = 5120
+      }
+    ]
   }
 
   "aiagent-ml-inference" = {
@@ -346,7 +351,12 @@ function_apps = {
     storage_use                               = "AzureFiles"
     sku_name                                  = "Standard_LRS"
     create_fileshare                          = true
-    file_shares                               = []
+    file_shares                               = [
+      {
+        name = "func-aiagent-ml-inference-share"
+        quota = 5120
+      }
+    ]
   }
 
   "aiagent-orchestrator" = {
@@ -398,48 +408,61 @@ function_apps = {
     storage_use                               = "AzureFiles"
     sku_name                                  = "Standard_LRS"
     create_fileshare                          = true
-    file_shares                               = []
+    file_shares                               = [
+      {
+        name = "func-aiagent-orchestrator-share"
+        quota = 5120
+      }
+    ]
   }
 }
 
 #--------------Logic Apps--------------------#
 
-logic_apps = {
-  "aiagent-workflow-orchestrator" = {
-    resource_location                    = "uaenorth"
-    resource_group_name                 = "rg-aiapps-nonprod-uaenorth-8200ys"
-    application_name                    = "aiapps"
-    environment                         = "dev"
-    storage_account_name               = "staiappsnonproduaen001"
-    app_service_plan_name              = "aiapps-logic-asp"
-    service_plan_name                   = "asp-aiagent-workflow-nonprod-001"
-    user_assigned_identity_ids          = ["/subscriptions/eed58c8e-f08c-4839-9bfe-469f4705d062/resourceGroups/rg-aiapps-nonprod-uaenorth-8200ys/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-aiagent-workflow-nonprod-001"]
-    privatelink_subnet = {
-      name           = "snet-private-endpoint-uaenorth-001"
-      vnet_name      = "vnet-aiapps-nonprod-uan"
-      resource_group = "rg-aiapps-nonprod-uaenorth-8200ys"
-    }
-    private_dns_zone_id                = "/subscriptions/connectivity-sub-id/resourceGroups/rg-connectivity-dns-uaenorth-01/providers/Microsoft.Network/privateDnsZones/privatelink.azurewebsites.net"
-    sku_name                           = "Standard_LRS"
-    file_shares                        = []
-    customer_managed_key_enabled       = false
-    kv_name                            = null
-    kv_resource_group_name             = null
-    cmk_name                           = null
-    storage_use                        = true
-    definistion_file_path              = null
-    file_share_private_dns_zone_id     = "/subscriptions/connectivity-sub-id/resourceGroups/rg-connectivity-dns-uaenorth-01/providers/Microsoft.Network/privateDnsZones/privatelink.file.core.windows.net"
-    create_fileshare                   = true
-    existing_service_plan              = null
-    uai_required                       = true
-    logic_apps = {
-      "logic-aiagent-workflow-orchestrator" = {
-        name = "logic-aiagent-workflow-orchestrator"
-        env_vars = {
-          "AzureWebJobsStorage" = "DefaultEndpointsProtocol=https;AccountName=staiappsnonproduaen001;EndpointSuffix=core.windows.net"
-          "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING" = "DefaultEndpointsProtocol=https;AccountName=staiappsnonproduaen001;EndpointSuffix=core.windows.net"
-        }
-      }
-    }
-  }
-}
+# logic_apps = {
+#   "aiagent-workflow-orchestrator" = {
+#     resource_location                    = "uaenorth"
+#     resource_group_name                 = "rg-aiapps-nonprod-uaenorth-8200ys"
+#     application_name                    = "aiapps"
+#     environment                         = "dev"
+#     storage_account_name               = "staiappsnonproduaen001"
+#     app_service_plan_name              = "aiapps-logic-asp"
+#     service_plan_name                   = "asp-aiagent-workflow-nonprod-001"
+#     user_assigned_identity_ids          = ["/subscriptions/eed58c8e-f08c-4839-9bfe-469f4705d062/resourceGroups/rg-aiapps-nonprod-uaenorth-8200ys/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-aiagent-workflow-nonprod-001"]
+#     privatelink_subnet = {
+#       name           = "snet-private-endpoint-uaenorth-001"
+#       vnet_name      = "vnet-aiapps-nonprod-uan"
+#       resource_group = "rg-aiapps-nonprod-uaenorth-8200ys"
+#     }
+#     private_dns_zone_id                = "/subscriptions/connectivity-sub-id/resourceGroups/rg-connectivity-dns-uaenorth-01/providers/Microsoft.Network/privateDnsZones/privatelink.azurewebsites.net"
+#     sku_name                           = "Standard_LRS"
+#     file_shares                        = [
+#       {
+#         name = "logic-aiagent-workflow-share"
+#         quota = 5120
+#       }
+#     ]
+#     customer_managed_key_enabled       = false
+#     kv_name                            = null
+#     kv_resource_group_name             = null
+#     cmk_name                           = null
+#     storage_use                        = true
+#     definistion_file_path              = null
+#     file_share_private_dns_zone_id     = "/subscriptions/connectivity-sub-id/resourceGroups/rg-connectivity-dns-uaenorth-01/providers/Microsoft.Network/privateDnsZones/privatelink.file.core.windows.net"
+#     create_fileshare                   = true
+#     existing_service_plan              = {
+#       name                = "aiapps-logic-asp"
+#       resource_group_name = "rg-aiapps-nonprod-uaenorth-8200ys"
+#     }
+#     uai_required                       = true
+#     logic_apps = {
+#       "logic-aiagent-workflow-orchestrator" = {
+#         name = "logic-aiagent-workflow-orchestrator"
+#         env_vars = {
+#           "AzureWebJobsStorage" = "DefaultEndpointsProtocol=https;AccountName=staiappsnonproduaen001;EndpointSuffix=core.windows.net"
+#           "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING" = "DefaultEndpointsProtocol=https;AccountName=staiappsnonproduaen001;EndpointSuffix=core.windows.net"
+#         }
+#       }
+#     }
+#   }
+# }

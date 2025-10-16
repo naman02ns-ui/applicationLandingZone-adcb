@@ -178,9 +178,9 @@ variable "function_apps" {
     app_service_plan_name                     = string
     existing_service_plan                     = optional(string)
     function_apps                             = map(object({
-      function_app_version = optional(string, "~4")
-      python_version      = optional(string, "3.11")
-      use_32_bit_worker   = optional(bool, false)
+      name            = string
+      env_vars        = map(string)
+      file_share_name = string
     }))
     app_function_subnet = object({
       name           = string
@@ -214,7 +214,7 @@ variable "function_apps" {
     storage_use                               = optional(string, "AzureFiles")
     sku_name                                  = optional(string, "Standard_LRS")
     create_fileshare                          = optional(bool, true)
-    file_shares                               = optional(list(string), [])
+    file_shares                               = optional(list(object({ name = string, quota = number })), [])
     uai_required                              = optional(bool, true)
   }))
   default = {}
@@ -240,7 +240,7 @@ variable "logic_apps" {
     })
     private_dns_zone_id                = string
     sku_name                           = optional(string, "Standard_LRS")
-    file_shares                        = optional(list(string), [])
+    file_shares                        = optional(list(object({ name = string, quota = number })), [])
     customer_managed_key_enabled       = optional(bool, false)
     kv_name                            = optional(string)
     kv_resource_group_name             = optional(string)
@@ -252,7 +252,8 @@ variable "logic_apps" {
     existing_service_plan              = optional(string)
     uai_required                       = optional(bool, true)
     logic_apps = map(object({
-      app_settings = optional(map(string), {})
+      name     = string
+      env_vars = map(string)
     }))
   }))
   default = {}

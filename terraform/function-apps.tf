@@ -81,11 +81,10 @@ resource "azurerm_role_assignment" "function_app_kv_secrets_user" {
 # Grant Function Apps access to Container Registry
 resource "azurerm_role_assignment" "function_app_acr_pull" {
   for_each = {
-    for fa_key, fa_config in var.function_apps : fa_key => {
-      for cr_key, cr_config in var.container_registries : "${fa_key}-${cr_key}" => {
-        scope        = module.container_registries[cr_key].id
-        principal_id = data.azurerm_user_assigned_identity.function_app_identity[fa_key].principal_id
-      }
+    for fa_key, fa_config in var.function_apps :
+    fa_key => {
+      scope        = module.container_registries["aiapps-nonprod-acr"].acr_id
+      principal_id = data.azurerm_user_assigned_identity.function_app_identity[fa_key].principal_id
     }
   }
 
