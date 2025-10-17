@@ -14,7 +14,7 @@ module "function_apps" {
   service_plan_sku                          = "EP1"  # This will be overridden by existing_service_plan
   max_elastic_worker_count                  = 20
   existing_service_plan = {
-    name                = each.value.app_service_plan_name
+    name                = module.app_service_plans[each.value.app_service_plan_name].name
     resource_group_name = each.value.resource_group_name
   }
   function_apps                             = each.value.function_apps

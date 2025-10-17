@@ -16,6 +16,8 @@ module "container_app_environments" {
   workload_profile          = each.value.workload_profile
   log_analytics_workspace_id = each.value.log_analytics_workspace_id
   tags                      = local.tags
+
+  depends_on = [module.base-infra]
 }
 
 module "container_apps" {

@@ -249,7 +249,10 @@ variable "logic_apps" {
     definistion_file_path              = optional(string)
     file_share_private_dns_zone_id     = string
     create_fileshare                   = optional(bool, true)
-    existing_service_plan              = optional(string)
+    existing_service_plan              = optional(object({
+      name                = string
+      resource_group_name = string
+    }))
     uai_required                       = optional(bool, true)
     logic_apps = map(object({
       name     = string

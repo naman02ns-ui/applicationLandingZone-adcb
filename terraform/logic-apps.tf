@@ -13,8 +13,11 @@
 #   environment                         = each.value.environment
 #   storage_account_name               = each.value.storage_account_name
 #   service_plan_name                   = each.value.service_plan_name
-#   existing_service_plan               = each.value.existing_service_plan
-#   user_assigned_identity_ids          = each.value.user_assigned_identity_ids
+#   existing_service_plan = {
+#     name                = each.value.app_service_plan_name
+#     resource_group_name = each.value.resource_group_name
+#   }
+# #   user_assigned_identity_ids          = each.value.user_assigned_identity_ids
 #   privatelink_subnet                  = each.value.privatelink_subnet
 #   private_dns_zone_id                = each.value.private_dns_zone_id
 #   sku_name                           = each.value.sku_name
