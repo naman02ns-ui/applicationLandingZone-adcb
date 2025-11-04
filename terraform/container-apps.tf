@@ -3,7 +3,7 @@
 # =============================================================================
 
 module "container_app_environments" {
-  source = "../adcb-iac/container-services/container-app-environment"
+  source = "./modules/container-services/container-app-environment"
 
   for_each = var.container_app_environments
 

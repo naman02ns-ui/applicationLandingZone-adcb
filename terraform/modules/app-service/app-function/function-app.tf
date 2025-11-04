@@ -30,7 +30,7 @@ module "app-insights" {
 
 # ${each.value.name}
 module "storage_account" {
-  source = "../../../../adcb-iac/storage"
+  source = "../../storage"
   # for_each              = var.function_apps
   resource_group                = local.rg
   environment                   = var.environment
