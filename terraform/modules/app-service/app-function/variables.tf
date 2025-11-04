@@ -343,3 +343,9 @@ variable "storage_use" {
   description = "This variables will help to determine which storage account the managed ideneity is for. For example 'func', 'statefile'."
   type        = string
 }
+
+variable "function_app_key" {
+  description = "Unique identifier for this function app instance (e.g., aiagent-data-processor)"
+  type        = string
+  default     = ""
+}

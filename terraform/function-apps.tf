@@ -39,6 +39,7 @@ module "function_apps" {
   sku_name                                  = each.value.sku_name
   create_fileshare                          = each.value.create_fileshare
   file_shares                               = each.value.file_shares
+  function_app_key                          = each.key
   uai_name_override                         = "uai-${each.value.application_name}-${each.value.environment}-func-${each.key}"
   tags                                      = local.tags
 
