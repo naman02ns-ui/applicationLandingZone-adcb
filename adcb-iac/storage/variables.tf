@@ -87,7 +87,7 @@ variable "container_soft_delete_retention_days" {
 
 variable "enable_versioning" {
   description = "Is versioning enabled? Default to `false`"
-  default     = true
+  default     = false
   type        = bool
 }
 

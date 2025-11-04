@@ -214,6 +214,7 @@ variable "function_apps" {
     storage_use                               = optional(string, "AzureFiles")
     sku_name                                  = optional(string, "Standard_LRS")
     create_fileshare                          = optional(bool, true)
+    enable_versioning                         = optional(bool, false)
     file_shares                               = optional(list(object({ name = string, quota = number })), [])
     uai_required                              = optional(bool, true)
   }))

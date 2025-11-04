@@ -167,7 +167,7 @@ container_registries = {
     environment                    = "dev"
     zone_redundancy_enabled        = false
     key_expiration_date           = null
-    sku                           = "Standard"
+    sku                           = "Premium"
     azurerm_key_vault_key         = null
     kv_name                       = null
     admin_enabled                 = true
@@ -296,6 +296,7 @@ function_apps = {
     storage_use                               = "AzureFiles"
     sku_name                                  = "Standard_LRS"
     create_fileshare                          = true
+    enable_versioning                         = false
     file_shares                               = [
       {
         name = "func-aiagent-data-processor-share"
@@ -353,6 +354,7 @@ function_apps = {
     storage_use                               = "AzureFiles"
     sku_name                                  = "Standard_LRS"
     create_fileshare                          = true
+    enable_versioning                         = false
     file_shares                               = [
       {
         name = "func-aiagent-ml-inference-share"
@@ -410,6 +412,7 @@ function_apps = {
     storage_use                               = "AzureFiles"
     sku_name                                  = "Standard_LRS"
     create_fileshare                          = true
+    enable_versioning                         = false
     file_shares                               = [
       {
         name = "func-aiagent-orchestrator-share"

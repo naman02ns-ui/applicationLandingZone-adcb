@@ -1,10 +1,10 @@
 module "res-id" {
-  source = "../../utility/random-identifier"
+  source = "../../../../adcb-iac/utility/random-identifier"
 }
 
 module "service-plan" {
   count                    = var.existing_service_plan == null ? 1 : 0
-  source                   = "../app-service-plan"
+  source                   = "../../../../adcb-iac/app-service/app-service-plan"
   resource_location        = local.location
   resource_group_name      = local.rg
   application_name         = var.application_name
@@ -18,7 +18,7 @@ module "service-plan" {
 
 module "app-insights" {
   count               = var.application_insights_enabled ? 1 : 0
-  source              = "../../monitoring/app-insights"
+  source              = "../../../../adcb-iac/monitoring/app-insights"
   resource_group_name = local.rg
   resource_location   = local.location
   application_name    = var.application_name
@@ -30,7 +30,7 @@ module "app-insights" {
 
 # ${each.value.name}
 module "storage_account" {
-  source = "../../storage"
+  source = "../../../../adcb-iac/storage"
   # for_each              = var.function_apps
   resource_group                = local.rg
   environment                   = var.environment
@@ -110,7 +110,7 @@ resource "azurerm_linux_function_app" "function-app" {
   virtual_network_subnet_id       = var.app_function_subnet != null ? data.azurerm_subnet.app_service_subnet[0].id : null
   functions_extension_version     = "~4"
   daily_memory_time_quota         = local.is_service_plan_consumption ? var.daily_memory_time_quota : null
-  key_vault_reference_identity_id = azurerm_user_assigned_identity.uai[0].id
+  key_vault_reference_identity_id = var.uai_required ? azurerm_user_assigned_identity.uai[0].id : null
   #   zip_deploy_file                 = ""
 
   site_config {
@@ -213,8 +213,8 @@ resource "azurerm_linux_function_app" "function-app" {
   }
 
   identity {
-    type         = "SystemAssigned, UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.uai[0].id]
+    type         = var.uai_required ? "SystemAssigned, UserAssigned" : "SystemAssigned"
+    identity_ids = var.uai_required ? [azurerm_user_assigned_identity.uai[0].id] : null
   }
 
   tags       = merge(local.tags, local.common_tags, { "resource_type" = "linux-function-app" })

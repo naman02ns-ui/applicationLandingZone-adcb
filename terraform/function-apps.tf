@@ -3,7 +3,7 @@
 # =============================================================================
 
 module "function_apps" {
-  source = "../adcb-iac/app-service/app-function"
+  source = "./modules/app-service/app-function"
 
   for_each = var.function_apps
 
@@ -39,22 +39,10 @@ module "function_apps" {
   sku_name                                  = each.value.sku_name
   create_fileshare                          = each.value.create_fileshare
   file_shares                               = each.value.file_shares
+  uai_name_override                         = "uai-${each.value.application_name}-${each.value.environment}-func-${each.key}"
   tags                                      = local.tags
 
   depends_on = [module.app_service_plans]
-}
-
-# =============================================================================
-# Data Sources for Function App User-Assigned Identities
-# =============================================================================
-
-data "azurerm_user_assigned_identity" "function_app_identity" {
-  for_each = var.function_apps
-
-  name                = "uai-${each.value.application_name}-${each.value.environment}-func-${each.key}"
-  resource_group_name = each.value.resource_group_name
-
-  depends_on = [module.function_apps]
 }
 
 # =============================================================================
@@ -66,8 +54,9 @@ resource "azurerm_role_assignment" "function_app_kv_secrets_user" {
   for_each = {
     for fa_key, fa_config in var.function_apps : fa_key => {
       scope        = module.azure_key_vault.id
-      principal_id = data.azurerm_user_assigned_identity.function_app_identity[fa_key].principal_id
+      principal_id = module.function_apps[fa_key].user_assigned_identity_principal_id
     }
+    if module.function_apps[fa_key].user_assigned_identity_principal_id != null
   }
 
   scope                = each.value.scope
@@ -75,7 +64,7 @@ resource "azurerm_role_assignment" "function_app_kv_secrets_user" {
   principal_id         = each.value.principal_id
   description          = "Grant Function App ${each.key} access to Key Vault secrets"
 
-  depends_on = [module.function_apps, data.azurerm_user_assigned_identity.function_app_identity]
+  depends_on = [module.function_apps, module.azure_key_vault]
 }
 
 # Grant Function Apps access to Container Registry
@@ -84,8 +73,9 @@ resource "azurerm_role_assignment" "function_app_acr_pull" {
     for fa_key, fa_config in var.function_apps :
     fa_key => {
       scope        = module.container_registries["aiapps-nonprod-acr"].acr_id
-      principal_id = data.azurerm_user_assigned_identity.function_app_identity[fa_key].principal_id
+      principal_id = module.function_apps[fa_key].user_assigned_identity_principal_id
     }
+    if module.function_apps[fa_key].user_assigned_identity_principal_id != null
   }
 
   scope                = each.value.scope
@@ -93,75 +83,5 @@ resource "azurerm_role_assignment" "function_app_acr_pull" {
   principal_id         = each.value.principal_id
   description          = "Grant Function App access to Container Registry"
 
-  depends_on = [module.container_registries, module.function_apps, data.azurerm_user_assigned_identity.function_app_identity]
+  depends_on = [module.container_registries, module.function_apps]
 }
-# resource "azurerm_role_assignment" "function_app_kv_secrets_user" {
-#   for_each = {
-#     for fa_key, fa_config in var.function_apps : fa_key => fa_config
-#     if module.function_apps[fa_key].user_assigned_identity_principal_id != null
-#   }
-
-#   scope                = module.azure_key_vault.id
-#   role_definition_name = "Key Vault Secrets User"
-#   principal_id         = module.function_apps[each.key].user_assigned_identity_principal_id
-#   description          = "Grant Function App ${each.key} access to Key Vault"
-
-#   depends_on = [module.azure_key_vault, module.function_apps]
-# }
-
-# Grant Function App's User-Assigned Managed Identity access to Container Registry
-# resource "azurerm_role_assignment" "function_app_acr_pull" {
-#   for_each = {
-#     for combo in flatten([
-#       for acr_key, acr_config in var.container_registries : [
-#         for fa_key, fa_config in var.function_apps : {
-#           acr_key = acr_key
-#           fa_key = fa_key
-#           acr_id  = module.container_registries[acr_key].acr_id
-#           principal_id = module.function_apps[fa_key].user_assigned_identity_principal_id
-#         } if module.function_apps[fa_key].user_assigned_identity_principal_id != null
-#       ]
-#     ]) : "${combo.acr_key}-${combo.fa_key}" => combo
-#   }
-
-#   scope                = each.value.acr_id
-#   role_definition_name = "AcrPull"
-#   principal_id         = each.value.principal_id
-#   description          = "Grant Function App ${each.value.fa_key} pull access to Container Registry ${each.value.acr_key}"
-
-#   depends_on = [module.container_registries, module.function_apps]
-# }
-
-# Grant Function Apps access to Cosmos DB
-# resource "azurerm_role_assignment" "function_app_cosmosdb_contributor" {
-#   for_each = {
-#     for fa_key, fa_config in var.function_apps : fa_key => {
-#       scope        = "/subscriptions/${var.management_sub_id}/resourceGroups/${module.resource_group.rg_name}/providers/Microsoft.DocumentDB/databaseAccounts/*"
-#       principal_id = module.function_apps[fa_key].user_assigned_identity_principal_id
-#     } if module.function_apps[fa_key].user_assigned_identity_principal_id != null
-#   }
-
-#   scope                = each.value.scope
-#   role_definition_name = "Cosmos DB Built-in Data Contributor"
-#   principal_id         = each.value.principal_id
-#   description          = "Grant Function App ${each.key} access to Cosmos DB"
-
-#   depends_on = [module.function_apps]
-# }
-
-# Grant Function Apps access to Storage Account
-# resource "azurerm_role_assignment" "function_app_storage_blob_contributor" {
-#   for_each = {
-#     for fa_key, fa_config in var.function_apps : fa_key => {
-#       scope        = "/subscriptions/${var.management_sub_id}/resourceGroups/${module.resource_group.rg_name}/providers/Microsoft.Storage/storageAccounts/*"
-#       principal_id = module.function_apps[fa_key].user_assigned_identity_principal_id
-#     } if module.function_apps[fa_key].user_assigned_identity_principal_id != null
-#   }
-
-#   scope                = each.value.scope
-#   role_definition_name = "Storage Blob Data Contributor"
-#   principal_id         = each.value.principal_id
-#   description          = "Grant Function App ${each.key} access to Storage Account"
-
-#   depends_on = [module.function_apps]
-# }

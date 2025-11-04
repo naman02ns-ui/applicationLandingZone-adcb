@@ -141,11 +141,10 @@ resource "azurerm_storage_container" "container" {
 # Storage Fileshare Creation
 #-------------------------------
 resource "azurerm_storage_share" "fileshare" {
-  count                = length(var.file_shares) > 0 ? length(var.file_shares) : 0
-  name                 = var.file_shares[count.index].name
-  storage_account_id    = azurerm_storage_account.storeacc.id
-  storage_account_name    = azurerm_storage_account.storeacc.name
-  quota                = var.file_shares[count.index].quota
+  count              = length(var.file_shares) > 0 ? length(var.file_shares) : 0
+  name               = var.file_shares[count.index].name
+  storage_account_id = azurerm_storage_account.storeacc.id
+  quota              = var.file_shares[count.index].quota
 }
 
 #-------------------------------
